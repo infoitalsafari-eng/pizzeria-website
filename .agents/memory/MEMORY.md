@@ -1,0 +1,2 @@
+- [Cloudflare blank-page deploy (pizzeria)](cloudflare-deploy-pizzeria.md) — root app deploys to Cloudflare; blank = frozen bun.lock + 16 missing src files recovered from git history
+- [Replit main-agent git constraints](replit-git-constraints.md) — git rm blocked, platform restores deleted tracked files; recover via `git show ref:path`, not `git checkout`
