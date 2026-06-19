@@ -30,6 +30,20 @@ Non-obvious gotchas for this deploy:
   Cloudflare ignores `netlify.toml` redirects. Need `public/_redirects` with
   `/*  /index.html  200` so `/menu`, `/heurs` resolve on direct load.
 
+- **Server-only deps in the frontend package.json broke the Cloudflare install.**
+  `firebase-admin` (+ its ~100-pkg google-cloud/grpc/protobuf tree), `jsonwebtoken`,
+  `uuid`, `node-fetch` were in the root `dependencies` but used ONLY by
+  `netlify/functions/api/api.mjs`, never by `src/`. Cloudflare's
+  `bun install --frozen-lockfile` installs everything and died with mass
+  `ConnectionRefused`/`FailedToOpenSocket` on exactly that firebase tree.
+  Fix: move those deps into a colocated `netlify/functions/package.json` and remove
+  them from root, then regenerate `bun.lock`. Netlify's bundler installs the
+  function-dir package.json, so the API keeps working; Cloudflare no longer pulls
+  the server tree. (`node-fetch` was already commented out in api.mjs — Node 20 has
+  global fetch — so it was dropped entirely.)
+  **Why:** a frontend (Vite) build never needs server SDKs; keeping them in root
+  bloats the install and exposes it to network failures on heavy transitive trees.
+
 **How to apply:** when a Pages deploy is blank, reproduce `npm run build` locally
 first; a resolve error means missing source. Always add an SPA fallback for
 client-side routers on Cloudflare.
