@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Phone,
@@ -11,7 +11,7 @@ import {
   Clock,
   MessageCircle,
   Share2,
-  Asterisk,
+  Lock,
 } from 'lucide-react';
 import { isMobileDevice } from '@/lib/device';
 import InstallPopup from '@/components/InstallPopup';
@@ -84,7 +84,8 @@ const LinkCard = ({ href, onClick, icon, title, subtitle, delay = 0, internal = 
 
 const LandingPage = () => {
   const [installOpen, setInstallOpen] = useState(false);
-  const isMobile = false; //isMobileDevice();
+  const isMobile = false;
+  const navigate = useNavigate();
 
   const { data: informations } = useApiService<Infos>("informations-pizzeria");
 
@@ -120,8 +121,12 @@ const LandingPage = () => {
       <div className="mx-auto max-w-md px-5 py-6 flex flex-col items-center text-white">
         {/* Top bar */}
         <div className="w-full flex items-center justify-between mb-8">
-          <button className="w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center hover:bg-white/25 transition">
-            <Asterisk className="w-5 h-5" />
+          <button
+            onClick={() => navigate('/admin/login')}
+            title="Administration"
+            className="w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center hover:bg-white/25 transition"
+          >
+            <Lock className="w-4 h-4" />
           </button>
           <button
             onClick={shareUrl}
@@ -238,7 +243,23 @@ const LandingPage = () => {
           </a>
         </motion.div>
 
-        <p className="mt-8 mb-4 text-[11px] text-white/70">© 2026 Pizzeria Chez Moi · Since 2019</p>
+        <p className="mt-8 text-[11px] text-white/70">© 2026 Pizzeria Chez Moi · Since 2019</p>
+
+        {/* Admin link */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          className="mb-4 mt-2"
+        >
+          <button
+            onClick={() => navigate('/admin/login')}
+            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 text-[11px] transition"
+          >
+            <Lock className="w-3 h-3" />
+            Se connecter
+          </button>
+        </motion.div>
       </div>
 
       <InstallPopup open={installOpen} onClose={() => setInstallOpen(false)} />
