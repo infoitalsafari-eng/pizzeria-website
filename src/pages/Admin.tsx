@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight } from 'lucide-react';
+import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
@@ -79,6 +79,7 @@ const Admin = () => {
       style={{ background: 'linear-gradient(135deg, hsl(56, 28%, 68%) 0%, hsl(0, 90%, 47%) 100%)' }}
     >
       <div className="mx-auto max-w-md px-5 py-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,6 +103,7 @@ const Admin = () => {
           </button>
         </motion.div>
 
+        {/* Title */}
         <motion.h2
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -119,8 +121,9 @@ const Admin = () => {
           Vue d'ensemble de votre restaurant
         </motion.p>
 
-        <div className="space-y-3">
-          <Link to="/menu" className="block">
+        {/* Stats */}
+        <div className="space-y-3 mb-8">
+          <Link to="/admin/menu" className="block">
             <StatCard
               icon={<UtensilsCrossed className="w-5 h-5 text-white" />}
               label="Produits au menu"
@@ -130,7 +133,7 @@ const Admin = () => {
             />
           </Link>
 
-          <Link to="/heurs" className="block">
+          <Link to="/admin/heures" className="block">
             <StatCard
               icon={<Clock className="w-5 h-5 text-white" />}
               label="Jours configurés"
@@ -148,28 +151,64 @@ const Admin = () => {
             delay={0.3}
           />
 
-          <StatCard
-            icon={<Phone className="w-5 h-5 text-white" />}
-            label="Informations restaurant"
-            count="→"
-            color="bg-green-700/60"
-            delay={0.35}
-          />
+          <Link to="/admin/informations" className="block">
+            <StatCard
+              icon={<Phone className="w-5 h-5 text-white" />}
+              label="Informations restaurant"
+              count="→"
+              color="bg-green-700/60"
+              delay={0.35}
+            />
+          </Link>
         </div>
 
+        {/* Management links */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-8 rounded-2xl p-5"
+          transition={{ delay: 0.45 }}
+          className="rounded-2xl p-5 mb-5"
+          style={{ background: 'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)' }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Settings className="w-4 h-4 text-primary" />
+            <p className="text-white font-semibold text-sm">Gestion</p>
+          </div>
+          <div className="space-y-2">
+            {[
+              { to: '/admin/menu', label: 'Gérer le menu', desc: 'Ajouter, modifier, supprimer des produits', color: 'bg-primary/20 hover:bg-primary/30' },
+              { to: '/admin/heures', label: 'Gérer les horaires', desc: "Modifier les heures d'ouverture", color: 'bg-orange-600/20 hover:bg-orange-600/30' },
+              { to: '/admin/informations', label: 'Gérer les informations', desc: 'Instagram, WhatsApp, téléphone, Maps', color: 'bg-green-700/20 hover:bg-green-700/30' },
+            ].map(({ to, label, desc, color }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl transition ${color}`}
+              >
+                <div>
+                  <p className="text-white text-sm font-medium">{label}</p>
+                  <p className="text-white/50 text-xs">{desc}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Public links */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="rounded-2xl p-5"
           style={{ background: 'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)' }}
         >
           <p className="text-white font-semibold text-sm mb-1">Accès rapide</p>
-          <p className="text-white/50 text-xs mb-4">Naviguer vers les sections du site</p>
+          <p className="text-white/50 text-xs mb-4">Pages publiques du site</p>
           <div className="flex flex-wrap gap-2">
             {[
-              { to: '/menu', label: 'Menu' },
-              { to: '/heurs', label: 'Heures' },
+              { to: '/menu', label: 'Menu public' },
+              { to: '/heurs', label: 'Horaires publics' },
               { to: '/', label: 'Accueil' },
             ].map(({ to, label }) => (
               <Link

@@ -1,0 +1,71 @@
+CONTEXTE
+Le panneau admin (Admin.tsx) affiche actuellement juste des compteurs (325 produits, 
+7 horaires, etc.) connectés à Supabase, mais aucune interface de gestion (CRUD) 
+n'existe encore. Auth admin déjà fonctionnelle via Supabase Auth.
+
+TÂCHE — Construire 3 interfaces de gestion complètes
+
+═══════════════════════════════════
+PARTIE 1 — Gestion des PRODUITS (menu_items)
+═══════════════════════════════════
+Crée une page /admin/menu accessible depuis le dashboard admin :
+
+1. Liste paginée ou avec scroll des 325 produits, avec recherche par nom et 
+   filtre par catégorie (utilise les 20 catégories existantes)
+2. Pour chaque produit : afficher nom, catégorie, prix, disponibilité, avec 
+   boutons Modifier / Supprimer
+3. Formulaire d'ajout (bouton "+ Nouveau produit") avec les champs : nom, 
+   catégorie (select avec les catégories existantes + option "nouvelle catégorie"), 
+   prix (FCFA), description, emoji, disponibilité (toggle)
+4. Formulaire de modification : même formulaire pré-rempli
+5. Suppression avec modale de confirmation ("Êtes-vous sûr de vouloir supprimer 
+   [nom du produit] ?")
+6. Toggle rapide disponibilité directement depuis la liste (sans ouvrir le formulaire)
+7. Toutes les opérations utilisent le client Supabase, protégées par RLS 
+   (déjà en place — l'utilisateur doit être authentifié)
+8. Toast de confirmation après chaque action (succès/erreur)
+
+═══════════════════════════════════
+PARTIE 2 — Gestion des HORAIRES (heures_pizzeria)
+═══════════════════════════════════
+Crée une page /admin/heures :
+
+1. Liste des 7 jours (Lundi à Dimanche) avec leurs heures d'ouverture/fermeture 
+   actuelles (champs dayname, started, ending d'après le schéma existant)
+2. Édition inline ou modale pour chaque jour : modifier l'heure d'ouverture 
+   et de fermeture
+3. Option pour marquer un jour comme "Fermé" si applicable
+4. Sauvegarde individuelle par jour (pas besoin de tout sauvegarder d'un coup)
+5. Toast de confirmation après modification
+
+═══════════════════════════════════
+PARTIE 3 — Gestion des INFOS RESTAURANT (informations_pizzeria)
+═══════════════════════════════════
+Crée une page /admin/informations :
+
+1. Formulaire unique avec les champs existants : instagram, facebook, whatsapp, 
+   service (téléphone), maps (lien Google Maps)
+2. Pré-rempli avec les valeurs actuelles
+3. Un seul bouton "Enregistrer les modifications"
+4. Toast de confirmation après sauvegarde
+
+═══════════════════════════════════
+NAVIGATION
+═══════════════════════════════════
+Ajoute ces 3 pages dans le menu/dashboard du panneau admin (Admin.tsx) avec des 
+liens clairs : "Gérer le menu", "Gérer les horaires", "Gérer les informations"
+
+═══════════════════════════════════
+CONTRAINTES
+═══════════════════════════════════
+- Réutilise les composants UI déjà présents dans le projet (Radix UI / shadcn 
+  déjà installés d'après les dépendances) pour rester cohérent visuellement
+- Toutes les routes /admin/* doivent rester protégées par ProtectedAdminRoute 
+  (déjà en place)
+- Ne touche pas à la page publique /menu, /heurs, LandingPage (lecture seule, 
+  déjà fonctionnelles)
+- Gère les états de chargement (loading) et d'erreur proprement sur chaque page
+
+Procède partie par partie (1, puis 2, puis 3) mais dans la même session. 
+Donne-moi un résumé fichier par fichier à la fin, avec confirmation que la 
+compilation TypeScript passe sans erreur.

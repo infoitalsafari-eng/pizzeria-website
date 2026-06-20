@@ -11,6 +11,9 @@ import Menu from "./pages/Menu";
 import Heurs from "./pages/Heurs";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
+import AdminMenu from "./pages/AdminMenu";
+import AdminHeures from "./pages/AdminHeures";
+import AdminInformations from "./pages/AdminInformations";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +51,30 @@ const App = () => (
             element={
               <ProtectedAdminRoute>
                 <Admin />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/menu"
+            element={
+              <ProtectedAdminRoute>
+                <AdminMenu />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/heures"
+            element={
+              <ProtectedAdminRoute>
+                <AdminHeures />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/informations"
+            element={
+              <ProtectedAdminRoute>
+                <AdminInformations />
               </ProtectedAdminRoute>
             }
           />
