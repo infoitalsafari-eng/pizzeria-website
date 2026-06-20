@@ -6,10 +6,13 @@ import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: "0.0.0.0",
     port: 8080,
     hmr: {
       overlay: false,
+    },
+    watch: {
+      ignored: ["**/.local/**", "**/node_modules/**"],
     },
   },
   plugins: [

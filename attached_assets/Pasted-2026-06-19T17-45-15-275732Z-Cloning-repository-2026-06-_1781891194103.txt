@@ -1,0 +1,276 @@
+2026-06-19T17:45:15.275732Z	Cloning repository...
+2026-06-19T17:45:16.864527Z	From https://github.com/infoitalsafari-eng/pizzeria-website
+2026-06-19T17:45:16.865089Z	 * branch            a2707e9a1b2e58f0fee381bc7c93706391c999d9 -> FETCH_HEAD
+2026-06-19T17:45:16.865367Z	
+2026-06-19T17:45:16.907205Z	HEAD is now at a2707e9 Restore missing application files and fix deployment configuration
+2026-06-19T17:45:16.907922Z	
+2026-06-19T17:45:16.989095Z	
+2026-06-19T17:45:16.989611Z	Using v2 root directory strategy
+2026-06-19T17:45:17.012716Z	Success: Finished cloning repository files
+2026-06-19T17:45:19.455224Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-06-19T17:45:19.455704Z	
+2026-06-19T17:45:19.649804Z	No Wrangler configuration file found. Continuing.
+2026-06-19T17:45:20.200553Z	Detected the following tools from environment: npm@10.9.2, bun@1.2.15, nodejs@22.16.0
+2026-06-19T17:45:20.201228Z	Installing project dependencies: bun install --frozen-lockfile
+2026-06-19T17:45:20.984855Z	[0.16ms] ".env"
+2026-06-19T17:45:20.987872Z	bun install v1.2.15 (df017990)
+2026-06-19T17:45:33.751914Z	warn: ConnectionRefused downloading tarball @google-cloud/firestore@7.11.6
+2026-06-19T17:45:33.75244Z	
+2026-06-19T17:45:33.752788Z	warn: FailedToOpenSocket downloading tarball @google-cloud/storage@7.21.0
+2026-06-19T17:45:33.752989Z	
+2026-06-19T17:45:33.753057Z	error: ConnectionRefused downloading tarball firebase-admin@13.10.0
+2026-06-19T17:45:33.753126Z	
+2026-06-19T17:45:33.753178Z	error: ConnectionRefused downloading tarball jsonwebtoken@9.0.3
+2026-06-19T17:45:33.753235Z	
+2026-06-19T17:45:33.753274Z	error: ConnectionRefused downloading tarball @firebase/database-compat@2.1.4
+2026-06-19T17:45:33.753344Z	
+2026-06-19T17:45:33.753446Z	error: FailedToOpenSocket downloading tarball node-fetch@3.3.2
+2026-06-19T17:45:33.753496Z	
+2026-06-19T17:45:33.753534Z	error: ConnectionRefused downloading tarball jwks-rsa@3.2.2
+2026-06-19T17:45:33.753588Z	
+2026-06-19T17:45:33.753704Z	error: ConnectionRefused downloading tarball lodash.isboolean@3.0.3
+2026-06-19T17:45:33.753762Z	
+2026-06-19T17:45:33.753864Z	error: ConnectionRefused downloading tarball uuid@14.0.0
+2026-06-19T17:45:33.753919Z	
+2026-06-19T17:45:33.755057Z	error: ConnectionRefused downloading tarball lodash.once@4.1.1
+2026-06-19T17:45:33.755297Z	
+2026-06-19T17:45:33.755376Z	error: ConnectionRefused downloading tarball lodash.isstring@4.0.1
+2026-06-19T17:45:33.755411Z	
+2026-06-19T17:45:33.755441Z	error: ConnectionRefused downloading tarball google-auth-library@10.7.0
+2026-06-19T17:45:33.755471Z	
+2026-06-19T17:45:33.75551Z	error: FailedToOpenSocket downloading tarball @firebase/database-types@1.0.20
+2026-06-19T17:45:33.75554Z	
+2026-06-19T17:45:33.755571Z	error: ConnectionRefused downloading tarball formdata-polyfill@4.0.10
+2026-06-19T17:45:33.755598Z	
+2026-06-19T17:45:33.755629Z	error: ConnectionRefused downloading tarball fetch-blob@3.2.0
+2026-06-19T17:45:33.755655Z	
+2026-06-19T17:45:33.755682Z	error: ConnectionRefused downloading tarball lodash.includes@4.3.0
+2026-06-19T17:45:33.755713Z	
+2026-06-19T17:45:33.75574Z	error: ConnectionRefused downloading tarball @fastify/busboy@3.2.0
+2026-06-19T17:45:33.755796Z	
+2026-06-19T17:45:33.755835Z	error: FailedToOpenSocket downloading tarball lodash.isinteger@4.0.4
+2026-06-19T17:45:33.755861Z	
+2026-06-19T17:45:33.755902Z	error: ConnectionRefused downloading tarball google-gax@4.6.1
+2026-06-19T17:45:33.755938Z	
+2026-06-19T17:45:33.755967Z	error: ConnectionRefused downloading tarball @google-cloud/projectify@4.0.0
+2026-06-19T17:45:33.755999Z	
+2026-06-19T17:45:33.756027Z	error: ConnectionRefused downloading tarball lodash.isnumber@3.0.3
+2026-06-19T17:45:33.756054Z	
+2026-06-19T17:45:33.756081Z	error: ConnectionRefused downloading tarball farmhash-modern@1.1.0
+2026-06-19T17:45:33.756115Z	
+2026-06-19T17:45:33.756142Z	error: FailedToOpenSocket downloading tarball @opentelemetry/api@1.9.1
+2026-06-19T17:45:33.756176Z	
+2026-06-19T17:45:33.75621Z	error: ConnectionRefused downloading tarball duplexify@4.1.3
+2026-06-19T17:45:33.756242Z	
+2026-06-19T17:45:33.75627Z	error: ConnectionRefused downloading tarball html-entities@2.6.0
+2026-06-19T17:45:33.756299Z	
+2026-06-19T17:45:33.756336Z	error: ConnectionRefused downloading tarball functional-red-black-tree@1.0.1
+2026-06-19T17:45:33.756365Z	
+2026-06-19T17:45:33.756394Z	error: ConnectionRefused downloading tarball jws@4.0.1
+2026-06-19T17:45:33.756431Z	
+2026-06-19T17:45:33.756461Z	error: FailedToOpenSocket downloading tarball protobufjs@7.6.4
+2026-06-19T17:45:33.756492Z	
+2026-06-19T17:45:33.756526Z	error: ConnectionRefused downloading tarball @firebase/database@1.1.3
+2026-06-19T17:45:33.756561Z	
+2026-06-19T17:45:33.756599Z	error: ConnectionRefused downloading tarball @firebase/component@0.7.3
+2026-06-19T17:45:33.756634Z	
+2026-06-19T17:45:33.756669Z	error: ConnectionRefused downloading tarball async-retry@1.3.3
+2026-06-19T17:45:33.756703Z	
+2026-06-19T17:45:33.756739Z	error: ConnectionRefused downloading tarball data-uri-to-buffer@4.0.1
+2026-06-19T17:45:33.75678Z	
+2026-06-19T17:45:33.756819Z	error: FailedToOpenSocket downloading tarball @google-cloud/promisify@4.0.0
+2026-06-19T17:45:33.756856Z	
+2026-06-19T17:45:33.756893Z	error: ConnectionRefused downloading tarball ecdsa-sig-formatter@1.0.11
+2026-06-19T17:45:33.756927Z	
+2026-06-19T17:45:33.756957Z	error: ConnectionRefused downloading tarball base64-js@1.5.1
+2026-06-19T17:45:33.756987Z	
+2026-06-19T17:45:33.757024Z	error: ConnectionRefused downloading tarball gaxios@6.7.1
+2026-06-19T17:45:33.757058Z	
+2026-06-19T17:45:33.757096Z	error: ConnectionRefused downloading tarball @google-cloud/paginator@5.0.2
+2026-06-19T17:45:33.757139Z	
+2026-06-19T17:45:33.757171Z	error: FailedToOpenSocket downloading tarball mime@3.0.0
+2026-06-19T17:45:33.757198Z	
+2026-06-19T17:45:33.757232Z	error: ConnectionRefused downloading tarball limiter@1.1.5
+2026-06-19T17:45:33.757263Z	
+2026-06-19T17:45:33.757298Z	error: ConnectionRefused downloading tarball jose@4.15.9
+2026-06-19T17:45:33.757338Z	
+2026-06-19T17:45:33.757369Z	error: ConnectionRefused downloading tarball teeny-request@9.0.0
+2026-06-19T17:45:33.757399Z	
+2026-06-19T17:45:33.757438Z	error: ConnectionRefused downloading tarball abort-controller@3.0.0
+2026-06-19T17:45:33.757465Z	
+2026-06-19T17:45:33.757494Z	error: FailedToOpenSocket downloading tarball @firebase/logger@0.5.1
+2026-06-19T17:45:33.75752Z	
+2026-06-19T17:45:33.757546Z	error: ConnectionRefused downloading tarball @grpc/proto-loader@0.7.15
+2026-06-19T17:45:33.757572Z	
+2026-06-19T17:45:33.757606Z	error: ConnectionRefused downloading tarball web-streams-polyfill@3.3.3
+2026-06-19T17:45:33.757644Z	
+2026-06-19T17:45:33.757681Z	error: ConnectionRefused downloading tarball @firebase/app-types@0.9.5
+2026-06-19T17:45:33.757722Z	
+2026-06-19T17:45:33.757758Z	error: ConnectionRefused downloading tarball fast-xml-parser@5.9.3
+2026-06-19T17:45:33.757797Z	
+2026-06-19T17:45:33.757835Z	error: FailedToOpenSocket downloading tarball gcp-metadata@8.1.2
+2026-06-19T17:45:33.757873Z	
+2026-06-19T17:45:33.757912Z	error: ConnectionRefused downloading tarball @protobufjs/base64@1.1.2
+2026-06-19T17:45:33.757952Z	
+2026-06-19T17:45:33.757992Z	error: ConnectionRefused downloading tarball proto3-json-serializer@2.0.2
+2026-06-19T17:45:33.758676Z	
+2026-06-19T17:45:33.75877Z	error: ConnectionRefused downloading tarball @types/jsonwebtoken@9.0.10
+2026-06-19T17:45:33.758822Z	
+2026-06-19T17:45:33.758863Z	error: ConnectionRefused downloading tarball retry-request@7.0.2
+2026-06-19T17:45:33.758901Z	
+2026-06-19T17:45:33.758936Z	error: FailedToOpenSocket downloading tarball lru-memoizer@2.3.0
+2026-06-19T17:45:33.758964Z	
+2026-06-19T17:45:33.759Z	error: ConnectionRefused downloading tarball @protobufjs/path@1.1.2
+2026-06-19T17:45:33.759034Z	
+2026-06-19T17:45:33.759062Z	error: ConnectionRefused downloading tarball @protobufjs/pool@1.1.0
+2026-06-19T17:45:33.759102Z	
+2026-06-19T17:45:33.759129Z	error: ConnectionRefused downloading tarball node-domexception@1.0.0
+2026-06-19T17:45:33.75916Z	
+2026-06-19T17:45:33.759184Z	error: ConnectionRefused downloading tarball @firebase/util@1.15.1
+2026-06-19T17:45:33.759211Z	
+2026-06-19T17:45:33.759244Z	error: FailedToOpenSocket downloading tarball @grpc/grpc-js@1.14.4
+2026-06-19T17:45:33.759275Z	
+2026-06-19T17:45:33.759306Z	error: ConnectionRefused downloading tarball long@5.3.2
+2026-06-19T17:45:33.759349Z	
+2026-06-19T17:45:33.759387Z	error: ConnectionRefused downloading tarball arrify@2.0.1
+2026-06-19T17:45:33.759411Z	
+2026-06-19T17:45:33.759437Z	error: ConnectionRefused downloading tarball @protobufjs/aspromise@1.1.2
+2026-06-19T17:45:33.759464Z	
+2026-06-19T17:45:33.759488Z	error: ConnectionRefused downloading tarball google-logging-utils@1.1.3
+2026-06-19T17:45:33.759511Z	
+2026-06-19T17:45:33.759535Z	error: FailedToOpenSocket downloading tarball @protobufjs/eventemitter@1.1.1
+2026-06-19T17:45:33.759558Z	
+2026-06-19T17:45:33.759584Z	error: ConnectionRefused downloading tarball readable-stream@3.6.2
+2026-06-19T17:45:33.759621Z	
+2026-06-19T17:45:33.75965Z	error: ConnectionRefused downloading tarball retry@0.13.1
+2026-06-19T17:45:33.759674Z	
+2026-06-19T17:45:33.759701Z	error: ConnectionRefused downloading tarball @protobufjs/fetch@1.1.1
+2026-06-19T17:45:33.759744Z	
+2026-06-19T17:45:33.75977Z	error: ConnectionRefused downloading tarball jwa@2.0.1
+2026-06-19T17:45:33.759799Z	
+2026-06-19T17:45:33.759833Z	error: FailedToOpenSocket downloading tarball @protobufjs/float@1.0.2
+2026-06-19T17:45:33.759866Z	
+2026-06-19T17:45:33.759891Z	error: ConnectionRefused downloading tarball xml-naming@0.1.0
+2026-06-19T17:45:33.759922Z	
+2026-06-19T17:45:33.759951Z	error: ConnectionRefused downloading tarball is-unsafe@1.0.1
+2026-06-19T17:45:33.759976Z	
+2026-06-19T17:45:33.760003Z	error: ConnectionRefused downloading tarball extend@3.0.2
+2026-06-19T17:45:33.760029Z	
+2026-06-19T17:45:33.760056Z	error: ConnectionRefused downloading tarball @types/long@4.0.2
+2026-06-19T17:45:33.760079Z	
+2026-06-19T17:45:33.760105Z	error: FailedToOpenSocket downloading tarball event-target-shim@5.0.1
+2026-06-19T17:45:33.760132Z	
+2026-06-19T17:45:33.760157Z	error: ConnectionRefused downloading tarball stream-events@1.0.5
+2026-06-19T17:45:33.760226Z	
+2026-06-19T17:45:33.760256Z	error: ConnectionRefused downloading tarball @types/request@2.48.13
+2026-06-19T17:45:33.760288Z	
+2026-06-19T17:45:33.760315Z	error: ConnectionRefused downloading tarball end-of-stream@1.4.5
+2026-06-19T17:45:33.760351Z	
+2026-06-19T17:45:33.760375Z	error: ConnectionRefused downloading tarball @protobufjs/codegen@2.0.5
+2026-06-19T17:45:33.760399Z	
+2026-06-19T17:45:33.760427Z	error: FailedToOpenSocket downloading tarball fast-xml-builder@1.2.0
+2026-06-19T17:45:33.760457Z	
+2026-06-19T17:45:33.760482Z	error: ConnectionRefused downloading tarball @types/ms@2.1.0
+2026-06-19T17:45:33.760513Z	
+2026-06-19T17:45:33.760546Z	error: ConnectionRefused downloading tarball json-bigint@1.0.0
+2026-06-19T17:45:33.760569Z	
+2026-06-19T17:45:33.760598Z	error: ConnectionRefused downloading tarball stream-shift@1.0.3
+2026-06-19T17:45:33.760623Z	
+2026-06-19T17:45:33.760649Z	error: ConnectionRefused downloading tarball @protobufjs/utf8@1.1.1
+2026-06-19T17:45:33.760673Z	
+2026-06-19T17:45:33.7607Z	error: FailedToOpenSocket downloading tarball strnum@2.4.1
+2026-06-19T17:45:33.760725Z	
+2026-06-19T17:45:33.760753Z	error: ConnectionRefused downloading tarball @js-sdsl/ordered-map@4.4.2
+2026-06-19T17:45:33.760778Z	
+2026-06-19T17:45:33.76081Z	error: ConnectionRefused downloading tarball lodash.camelcase@4.3.0
+2026-06-19T17:45:33.760839Z	
+2026-06-19T17:45:33.760866Z	error: ConnectionRefused downloading tarball gtoken@7.1.0
+2026-06-19T17:45:33.760892Z	
+2026-06-19T17:45:33.760922Z	error: ConnectionRefused downloading tarball inherits@2.0.4
+2026-06-19T17:45:33.760949Z	
+2026-06-19T17:45:33.760983Z	error: FailedToOpenSocket downloading tarball @firebase/app-check-interop-types@0.3.4
+2026-06-19T17:45:33.761017Z	
+2026-06-19T17:45:33.76106Z	error: ConnectionRefused downloading tarball @types/tough-cookie@4.0.5
+2026-06-19T17:45:33.761099Z	
+2026-06-19T17:45:33.761136Z	error: ConnectionRefused downloading tarball anynum@1.0.1
+2026-06-19T17:45:33.761174Z	
+2026-06-19T17:45:33.761209Z	error: ConnectionRefused downloading tarball faye-websocket@0.11.4
+2026-06-19T17:45:33.761251Z	
+2026-06-19T17:45:33.761292Z	error: ConnectionRefused downloading tarball @nodable/entities@2.2.0
+2026-06-19T17:45:33.761335Z	
+2026-06-19T17:45:33.761371Z	error: FailedToOpenSocket downloading tarball lodash.clonedeep@4.5.0
+2026-06-19T17:45:33.761402Z	
+2026-06-19T17:45:33.761448Z	error: ConnectionRefused downloading tarball yallist@4.0.0
+2026-06-19T17:45:33.761485Z	
+2026-06-19T17:45:33.761523Z	error: ConnectionRefused downloading tarball websocket-driver@0.7.5
+2026-06-19T17:45:33.761556Z	
+2026-06-19T17:45:33.76159Z	error: ConnectionRefused downloading tarball buffer-equal-constant-time@1.0.1
+2026-06-19T17:45:33.761626Z	
+2026-06-19T17:45:33.761662Z	error: ConnectionRefused downloading tarball path-expression-matcher@1.5.0
+2026-06-19T17:45:33.7617Z	
+2026-06-19T17:45:33.761736Z	error: FailedToOpenSocket downloading tarball yargs@17.7.3
+2026-06-19T17:45:33.761771Z	
+2026-06-19T17:45:33.761815Z	error: ConnectionRefused downloading tarball yargs-parser@21.1.1
+2026-06-19T17:45:33.761848Z	
+2026-06-19T17:45:33.761894Z	error: ConnectionRefused downloading tarball wrappy@1.0.2
+2026-06-19T17:45:33.761933Z	
+2026-06-19T17:45:33.761972Z	error: ConnectionRefused downloading tarball once@1.4.0
+2026-06-19T17:45:33.762112Z	
+2026-06-19T17:45:33.762185Z	error: ConnectionRefused downloading tarball @firebase/auth-interop-types@0.2.5
+2026-06-19T17:45:33.762243Z	
+2026-06-19T17:45:33.762295Z	error: FailedToOpenSocket downloading tarball @types/caseless@0.12.5
+2026-06-19T17:45:33.762351Z	
+2026-06-19T17:45:33.762397Z	error: ConnectionRefused downloading tarball gaxios@7.1.5
+2026-06-19T17:45:33.762449Z	
+2026-06-19T17:45:33.762492Z	error: ConnectionRefused downloading tarball google-auth-library@9.15.1
+2026-06-19T17:45:33.76253Z	
+2026-06-19T17:45:33.762572Z	error: ConnectionRefused downloading tarball bignumber.js@9.3.1
+2026-06-19T17:45:33.762617Z	
+2026-06-19T17:45:33.762668Z	error: ConnectionRefused downloading tarball lru-cache@6.0.0
+2026-06-19T17:45:33.762722Z	
+2026-06-19T17:45:33.762773Z	error: FailedToOpenSocket downloading tarball get-caller-file@2.0.5
+2026-06-19T17:45:33.762822Z	
+2026-06-19T17:45:33.762867Z	error: ConnectionRefused downloading tarball @grpc/proto-loader@0.8.1
+2026-06-19T17:45:33.762922Z	
+2026-06-19T17:45:33.762984Z	error: ConnectionRefused downloading tarball gcp-metadata@6.1.1
+2026-06-19T17:45:33.763033Z	
+2026-06-19T17:45:33.763078Z	error: ConnectionRefused downloading tarball require-directory@2.1.1
+2026-06-19T17:45:33.763126Z	
+2026-06-19T17:45:33.76323Z	error: ConnectionRefused downloading tarball string_decoder@1.3.0
+2026-06-19T17:45:33.76329Z	
+2026-06-19T17:45:33.763376Z	error: FailedToOpenSocket downloading tarball y18n@5.0.8
+2026-06-19T17:45:33.763458Z	
+2026-06-19T17:45:33.763524Z	error: ConnectionRefused downloading tarball tr46@0.0.3
+2026-06-19T17:45:33.763602Z	
+2026-06-19T17:45:33.766166Z	error: ConnectionRefused downloading tarball form-data@2.5.6
+2026-06-19T17:45:33.766324Z	
+2026-06-19T17:45:33.766397Z	error: ConnectionRefused downloading tarball websocket-extensions@0.1.4
+2026-06-19T17:45:33.766444Z	
+2026-06-19T17:45:33.766481Z	error: ConnectionRefused downloading tarball stubs@3.0.0
+2026-06-19T17:45:33.766516Z	
+2026-06-19T17:45:33.766549Z	error: FailedToOpenSocket downloading tarball node-fetch@2.7.0
+2026-06-19T17:45:33.766581Z	
+2026-06-19T17:45:33.766618Z	error: ConnectionRefused downloading tarball http-parser-js@0.5.10
+2026-06-19T17:45:33.766653Z	
+2026-06-19T17:45:33.76669Z	error: ConnectionRefused downloading tarball whatwg-url@5.0.0
+2026-06-19T17:45:33.766728Z	
+2026-06-19T17:45:33.766767Z	error: ConnectionRefused downloading tarball https-proxy-agent@7.0.6
+2026-06-19T17:45:33.766803Z	
+2026-06-19T17:45:33.766835Z	error: ConnectionRefused downloading tarball cliui@8.0.1
+2026-06-19T17:45:33.766869Z	
+2026-06-19T17:45:33.766905Z	error: FailedToOpenSocket downloading tarball google-logging-utils@0.0.2
+2026-06-19T17:45:33.766941Z	
+2026-06-19T17:45:33.766979Z	error: ConnectionRefused downloading tarball hasown@2.0.4
+2026-06-19T17:45:33.767013Z	
+2026-06-19T17:45:33.767046Z	error: ConnectionRefused downloading tarball agent-base@7.1.4
+2026-06-19T17:45:33.767082Z	
+2026-06-19T17:45:33.767121Z	error: ConnectionRefused downloading tarball uuid@9.0.1
+2026-06-19T17:45:33.767151Z	
+2026-06-19T17:45:33.767181Z	error: ConnectionRefused downloading tarball webidl-conversions@3.0.1
+2026-06-19T17:45:33.785409Z	Error: Exit with error code: 1
+2026-06-19T17:45:33.785967Z	    at ChildProcess.<anonymous> (/snapshot/dist/run-build.js)
+2026-06-19T17:45:33.786104Z	    at Object.onceWrapper (node:events:652:26)
+2026-06-19T17:45:33.786329Z	    at ChildProcess.emit (node:events:537:28)
+2026-06-19T17:45:33.786549Z	    at ChildProcess._handle.onexit (node:internal/child_process:291:12)
+2026-06-19T17:45:33.79455Z	Failed: build command exited with code: 1
+2026-06-19T17:45:34.560146Z	Failed: error occurred while running build command
