@@ -1,0 +1,46 @@
+CONTEXTE
+Suite à l'audit précédent. Décisions validées :
+- Migration complète : menu_items + heures_pizzeria + orders_pizzeria
+- Auth admin : migration vers Supabase Auth (remplace le système local actuel 
+  username/password en env vars)
+
+TÂCHE
+
+Étape 1 - Compléter le schéma manquant
+Inspecte la structure réelle des collections Firestore "heures-pizzeria" et 
+"orders-pizzeria" (via l'API existante api.mjs ou directement dans Firestore si 
+accessible) pour connaître leurs champs exacts. Ne devine pas — lis les données 
+réelles existantes.
+
+Mets à jour le schéma SQL proposé précédemment avec les vrais champs trouvés pour 
+ces deux tables (au lieu des placeholders "à confirmer").
+
+Étape 2 - Créer les tables dans Supabase
+Une fois le schéma confirmé, crée dans Supabase :
+- menu_items (schéma déjà validé dans l'audit précédent)
+- heures_pizzeria (nouveau schéma basé sur les vraies données)
+- orders_pizzeria (nouveau schéma basé sur les vraies données)
+
+Active Row Level Security (RLS) sur les 3 tables :
+- Lecture publique (SELECT) autorisée à tous
+- Écriture (INSERT/UPDATE/DELETE) réservée aux utilisateurs authentifiés Supabase 
+  avec un rôle admin
+
+Étape 3 - Migrer les données
+- Importe les 325 produits de src/data/menuPizzeria.ts dans menu_items 
+  (conserve les IDs existants)
+- Importe les données actuelles de heures-pizzeria et orders-pizzeria 
+  (si elles existent côté Firestore/Netlify) dans leurs tables respectives
+
+Étape 4 - Configurer Supabase Auth
+- Crée un compte admin dans Supabase Auth avec mon email
+- NE SUPPRIME PAS encore le système d'auth local actuel (on bascule au Stage 3)
+
+NE PAS ENCORE :
+- Modifier le frontend pour lire depuis Supabase au lieu de Firestore/menuPizzeria.ts
+- Supprimer le code Firebase ou api.mjs
+- Toucher au fichier .env commité (on le gère séparément, c'est un risque sécurité)
+
+Donne-moi un résumé de ce qui a été créé/migré, avec le nombre de lignes insérées 
+par table, pour que je vérifie avant qu'on passe au Stage 3 (bascule du frontend + 
+nettoyage Firebase).
