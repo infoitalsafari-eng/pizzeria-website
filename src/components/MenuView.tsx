@@ -133,7 +133,7 @@ const MenuView = () => {
       {filtered.length === 0 && products.length > 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-4xl mb-3">🔍</p>
-          <p>Aucun r\u00e9sultat trouv\u00e9</p>
+          <p>Aucun résultat trouvé</p>
         </div>
       )}
 

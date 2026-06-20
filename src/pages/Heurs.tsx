@@ -39,7 +39,7 @@ const Heurs = () => {
   // SEO
   useEffect(() => {
     const prevTitle = document.title;
-    document.title = 'Nos heures d\u2019ouverture \u2013 Pizzeria Chez Moi Garoua';
+    document.title = 'Nos heures d’ouverture – Pizzeria Chez Moi Garoua';
 
     const setMeta = (name: string, content: string, attr: 'name' | 'property' = 'name') => {
       let tag = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`);
@@ -52,9 +52,9 @@ const Heurs = () => {
     };
 
     const description =
-      'D\u00e9couvrez les horaires d\u2019ouverture de la Pizzeria Chez Moi \u00e0 Garoua. Ouvert 7j/7 de 08H00 \u00e0 23H00.';
+      'Découvrez les horaires d’ouverture de la Pizzeria Chez Moi à Garoua. Ouvert 7j/7 de 08H00 à 23H00.';
     setMeta('description', description);
-    setMeta('og:title', 'Nos heures \u2013 Pizzeria Chez Moi', 'property');
+    setMeta('og:title', 'Nos heures – Pizzeria Chez Moi', 'property');
     setMeta('og:description', description, 'property');
 
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
@@ -156,28 +156,28 @@ const Heurs = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold leading-tight">
-              {isOpen ? 'Ouvert maintenant' : 'Ferm\u00e9 actuellement'}
+              {isOpen ? 'Ouvert maintenant' : 'Fermé actuellement'}
             </p>
             <p className="text-[11px] text-white/70 mt-0.5">
-              {todayItem?.dayname ?? "Aujourd\u2019hui"} · {todayItem?.started} \u2013 {todayItem?.ending}
+              {todayItem?.dayname ?? "Aujourd’hui"} · {todayItem?.started} – {todayItem?.ending}
             </p>
           </div>
           <Clock className="w-5 h-5 text-primary" />
         </motion.div>
 
         {loading && (
-          <div className="text-center py-10 text-white/80">Chargement\u2026</div>
+          <div className="text-center py-10 text-white/80">Chargement…</div>
         )}
 
         {error && !loading && (
           <div className="text-center py-10 text-white/90">
-            Impossible de charger les donn\u00e9es.
+            Impossible de charger les données.
           </div>
         )}
 
         {!loading && !error && items.length === 0 && (
           <div className="text-center py-10 text-white/80">
-            Aucune donn\u00e9e disponible pour le moment.
+            Aucune donnée disponible pour le moment.
           </div>
         )}
 
@@ -201,7 +201,7 @@ const Heurs = () => {
               >
                 {isToday && (
                   <span className="absolute top-1 right-2 text-[9px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur px-1.5 py-0.5 rounded-full">
-                    Aujourd\u2019hui
+                    Aujourd’hui
                   </span>
                 )}
                 <div
@@ -223,7 +223,7 @@ const Heurs = () => {
                   <div className="flex items-center gap-1.5 text-white font-bold whitespace-nowrap">
                     <Clock className="w-3.5 h-3.5 opacity-80" />
                     <span className="tabular-nums text-sm">
-                      {item.started} \u2013 {item.ending}
+                      {item.started} – {item.ending}
                     </span>
                   </div>
                 )}
@@ -233,7 +233,7 @@ const Heurs = () => {
         </div>
 
         <p className="mt-10 mb-4 text-center text-[11px] text-white/70">
-          \u00a9 2026 Pizzeria Chez Moi · Since 2019
+          © 2026 Pizzeria Chez Moi · Since 2019
         </p>
       </div>
     </div>

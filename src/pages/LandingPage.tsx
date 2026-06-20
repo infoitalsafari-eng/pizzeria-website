@@ -189,7 +189,7 @@ const LandingPage = () => {
             internal
             icon={<UtensilsCrossed className="w-6 h-6" />}
             title="MENU – PIZZERIA"
-            subtitle="D\u00e9couvrir notre carte"
+            subtitle="Découvrir notre carte"
             delay={0.4}
           />
           <LinkCard
@@ -197,7 +197,7 @@ const LandingPage = () => {
             internal
             icon={<Clock className="w-6 h-6" />}
             title="NOS HEURES"
-            subtitle="D\u00e9couvrir nos heures"
+            subtitle="Découvrir nos heures"
             delay={0.4}
           />
           <LinkCard
@@ -211,7 +211,7 @@ const LandingPage = () => {
             href={infos.whatsapp}
             icon={<MessageCircle className="w-6 h-6" />}
             title="COMMANDER VIA WHATSAPP"
-            subtitle="R\u00e9ponse rapide"
+            subtitle="Réponse rapide"
             delay={0.5}
           />
           <LinkCard
@@ -252,7 +252,7 @@ const LandingPage = () => {
           </a>
         </motion.div>
 
-        <p className="mt-8 text-[11px] text-white/70">\u00a9 2026 Pizzeria Chez Moi · Since 2019</p>
+        <p className="mt-8 text-[11px] text-white/70">© 2026 Pizzeria Chez Moi · Since 2019</p>
 
         {/* Admin link */}
         <motion.div
