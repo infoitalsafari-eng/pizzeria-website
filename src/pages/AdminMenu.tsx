@@ -201,7 +201,10 @@ const AdminMenu = () => {
         setDialogOpen(false);
       }
     } else {
-      const { error } = await supabase.from('menu_items').insert(payload);
+      const { error } = await supabase.from('menu_items').insert({
+        id: crypto.randomUUID(),
+        ...payload,
+      });
       if (error) {
         toast.error('Erreur : ' + error.message);
       } else {
