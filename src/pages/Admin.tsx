@@ -1,14 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight } from 'lucide-react';
-import { useAdminAuthStore } from '@/store/adminAuthStore';
-import { useApiService } from '@/services/apiService';
+import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
-
-interface MenuItem { id: string; name: string | null; }
-interface HeureItem { id: string; dayname: string | null; }
-interface OrderItem { id: string; status: string | null; }
 
 const StatCard = ({
   icon, label, count, color, delay,
@@ -34,27 +29,49 @@ const StatCard = ({
 );
 
 const Admin = () => {
-  const { isAdminLoggedIn, logout } = useAdminAuthStore();
   const navigate = useNavigate();
-
-  const { data: menu, loading: menuLoading } = useApiService<MenuItem>('pizzas');
-  const { data: heures, loading: heuresLoading } = useApiService<HeureItem>('heures-pizzeria');
-  const { data: orders, loading: ordersLoading } = useApiService<OrderItem>('orders-pizzeria');
+  const [ready, setReady] = useState(false);
+  const [menuCount, setMenuCount] = useState<number | null>(null);
+  const [heuresCount, setHeuresCount] = useState<number | null>(null);
+  const [activeOrdersCount, setActiveOrdersCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!isAdminLoggedIn) navigate('/admin/login', { replace: true });
-  }, [isAdminLoggedIn, navigate]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate('/admin/login', { replace: true });
+      } else {
+        setReady(true);
+        loadCounts();
+      }
+    });
 
-  const handleLogout = () => {
-    logout();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) navigate('/admin/login', { replace: true });
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const loadCounts = async () => {
+    const [menuRes, heuresRes, ordersRes] = await Promise.all([
+      supabase.from('menu_items').select('*', { count: 'exact', head: true }),
+      supabase.from('heures_pizzeria').select('*', { count: 'exact', head: true }),
+      supabase
+        .from('orders_pizzeria')
+        .select('id', { count: 'exact', head: true })
+        .not('status', 'in', '("delivered","cancelled")'),
+    ]);
+    setMenuCount(menuRes.count ?? 0);
+    setHeuresCount(heuresRes.count ?? 0);
+    setActiveOrdersCount(ordersRes.count ?? 0);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/');
   };
 
-  if (!isAdminLoggedIn) return null;
-
-  const activeOrders = orders?.filter(
-    (o) => o.status !== 'delivered' && o.status !== 'cancelled'
-  ) ?? [];
+  if (!ready) return null;
 
   return (
     <div
@@ -106,8 +123,8 @@ const Admin = () => {
           <Link to="/menu" className="block">
             <StatCard
               icon={<UtensilsCrossed className="w-5 h-5 text-white" />}
-              label="Pizzas au menu"
-              count={menuLoading ? '…' : (menu?.length ?? 0)}
+              label="Produits au menu"
+              count={menuCount === null ? '…' : menuCount}
               color="bg-primary/60"
               delay={0.2}
             />
@@ -117,7 +134,7 @@ const Admin = () => {
             <StatCard
               icon={<Clock className="w-5 h-5 text-white" />}
               label="Jours configurés"
-              count={heuresLoading ? '…' : (heures?.length ?? 0)}
+              count={heuresCount === null ? '…' : heuresCount}
               color="bg-orange-600/60"
               delay={0.25}
             />
@@ -126,7 +143,7 @@ const Admin = () => {
           <StatCard
             icon={<Package className="w-5 h-5 text-white" />}
             label="Commandes actives"
-            count={ordersLoading ? '…' : activeOrders.length}
+            count={activeOrdersCount === null ? '…' : activeOrdersCount}
             color="bg-yellow-600/60"
             delay={0.3}
           />

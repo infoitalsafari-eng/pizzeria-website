@@ -1,28 +1,28 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-const ADMIN_USER = import.meta.env.VITE_ADMIN_USER ?? 'admin';
-const ADMIN_PASS = import.meta.env.VITE_ADMIN_PASS ?? 'pizzeria2025';
+import type { Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminAuthState {
-  isAdminLoggedIn: boolean;
-  login: (user: string, pass: string) => boolean;
-  logout: () => void;
+  session: Session | null;
+  loading: boolean;
+  setSession: (session: Session | null) => void;
+  logout: () => Promise<void>;
 }
 
-export const useAdminAuthStore = create<AdminAuthState>()(
-  persist(
-    (set) => ({
-      isAdminLoggedIn: false,
-      login: (user, pass) => {
-        if (user === ADMIN_USER && pass === ADMIN_PASS) {
-          set({ isAdminLoggedIn: true });
-          return true;
-        }
-        return false;
-      },
-      logout: () => set({ isAdminLoggedIn: false }),
-    }),
-    { name: 'admin-auth' }
-  )
-);
+export const useAdminAuthStore = create<AdminAuthState>()((set) => ({
+  session: null,
+  loading: true,
+  setSession: (session) => set({ session, loading: false }),
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ session: null, loading: false });
+  },
+}));
+
+supabase.auth.getSession().then(({ data: { session } }) => {
+  useAdminAuthStore.getState().setSession(session);
+});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  useAdminAuthStore.getState().setSession(session);
+});

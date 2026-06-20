@@ -1,0 +1,47 @@
+CONTEXTE
+Stages précédents terminés : tables Supabase créées et peuplées (325 produits + 
+heures + infos), frontend public branché en lecture sur Supabase, compte admin 
+Supabase Auth déjà créé (email/password en secrets ADMIN_EMAIL/ADMIN_PASSWORD).
+
+TÂCHE
+
+Étape 1 - Authentification admin
+Remplace le système d'auth local actuel (adminAuthStore.ts) par Supabase Auth :
+- Page de login admin : utilise supabase.auth.signInWithPassword()
+- Stocke la session via le SDK Supabase (gestion automatique du token, pas de 
+  JWT manuel)
+- Protège les routes /admin/* : redirige vers /admin/login si pas de session active
+- Affiche un état "déconnexion" qui appelle supabase.auth.signOut()
+
+Étape 2 - Brancher Admin.tsx sur Supabase (lecture + écriture)
+Remplace useApiService dans Admin.tsx par des appels Supabase pour :
+- menu_items : lister, ajouter, modifier, supprimer un produit
+- heures_pizzeria : lister, modifier les horaires
+- orders_pizzeria : lister les commandes (si l'interface existe déjà)
+- informations_pizzeria : modifier les infos du restaurant
+Utilise la clé anon côté client — la sécurité d'écriture doit reposer sur les 
+policies RLS déjà en place (utilisateur authentifié = admin), pas sur une clé 
+secrète exposée au frontend.
+
+Étape 3 - Migrer le backend api.mjs
+netlify/functions/api/api.mjs utilise actuellement firebase-admin. Remplace-le par 
+un client Supabase utilisant la clé service_role (déjà stockée en secret Replit). 
+Si après le Stage 3b ce fichier api.mjs n'est plus appelé par aucune page frontend 
+(vérifie en cherchant tous les usages de useApiService dans le projet), propose-moi 
+de le supprimer entièrement plutôt que de le migrer — confirme ce point avant d'agir.
+
+Étape 4 - Nettoyage Firebase complet
+- Supprime la dépendance firebase-admin du package.json (si plus utilisée nulle part)
+- Supprime toutes les variables FIREBASE_* du .env
+- Vérifie qu'aucun fichier du projet n'importe encore quoi que ce soit de Firebase
+
+Étape 5 - Sécurité .env
+Le fichier .env est actuellement commité dans git avec des clés sensibles. 
+- Ajoute .env à .gitignore (s'il n'y est pas déjà)
+- Crée un .env.example avec les noms de variables (sans les valeurs) pour référence
+- Signale-moi clairement qu'il faudra faire une rotation des clés exposées 
+  (Supabase service_role notamment) puisqu'elles ont été visibles dans l'historique git
+
+Donne-moi un résumé complet fichier par fichier, confirme que la connexion admin 
+fonctionne avec les identifiants Supabase Auth, et liste les clés à régénérer pour 
+des raisons de sécurité.
