@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -65,6 +65,11 @@ const AdminMenu = () => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -97,9 +102,17 @@ const AdminMenu = () => {
     return list;
   }, [items, search, filterCat]);
 
+  const resetImageState = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUrl('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const openAdd = () => {
     setEditId(null);
     setForm(EMPTY_FORM);
+    resetImageState();
     setDialogOpen(true);
   };
 
@@ -115,7 +128,29 @@ const AdminMenu = () => {
       newCategory: '',
       useNewCategory: false,
     });
+    resetImageState();
+    setImageUrl(item.image_url ?? '');
     setDialogOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La photo dépasse 5 Mo.');
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUrl('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSave = async () => {
@@ -125,12 +160,33 @@ const AdminMenu = () => {
       return;
     }
     setSaving(true);
+
+    let finalImageUrl: string | null = imageUrl || null;
+
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop() ?? 'jpg';
+      const path = `${Date.now()}.${ext}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('menu-images')
+        .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+      if (uploadError) {
+        toast.error("Erreur d'upload : " + uploadError.message);
+        setSaving(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage
+        .from('menu-images')
+        .getPublicUrl(uploadData.path);
+      finalImageUrl = urlData.publicUrl;
+    }
+
     const payload = {
       name: form.name.trim(),
       category,
       price: parseFloat(form.price),
       description: form.description.trim() || null,
       emoji: form.emoji.trim() || null,
+      image_url: finalImageUrl,
       available: form.available,
       updated_at: new Date().toISOString(),
     };
@@ -185,6 +241,7 @@ const AdminMenu = () => {
   };
 
   const deleteName = deleteId ? items.find((i) => i.id === deleteId)?.name : '';
+  const previewSrc = imagePreview || imageUrl || null;
 
   return (
     <AdminLayout
@@ -248,9 +305,17 @@ const AdminMenu = () => {
               className="rounded-xl px-4 py-3 flex items-center gap-3"
               style={{ background: 'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)' }}
             >
-              <span className="text-xl w-7 text-center shrink-0 leading-none">
-                {item.emoji || '🍽️'}
-              </span>
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="w-9 h-9 rounded-lg object-cover shrink-0 bg-white/10"
+                />
+              ) : (
+                <span className="text-xl w-9 text-center shrink-0 leading-none">
+                  {item.emoji || '🍽️'}
+                </span>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-medium truncate">{item.name}</p>
                 <p className="text-white/50 text-xs truncate">
@@ -284,9 +349,18 @@ const AdminMenu = () => {
         </div>
       )}
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-neutral-900 border-white/10 text-white max-w-md">
+        <DialogContent className="bg-neutral-900 border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editId ? 'Modifier le produit' : 'Nouveau produit'}
@@ -294,6 +368,47 @@ const AdminMenu = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-1">
+            {/* Photo / Emoji */}
+            <div>
+              <Label className="text-white/70 text-xs mb-1.5 block">Photo</Label>
+              {previewSrc ? (
+                <div className="relative rounded-xl overflow-hidden">
+                  <img
+                    src={previewSrc}
+                    alt="Aperçu"
+                    className="w-full h-44 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center transition"
+                    aria-label="Supprimer la photo"
+                  >
+                    <X className="w-3.5 h-3.5 text-white" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-2 right-2 text-[10px] font-medium bg-black/60 hover:bg-black/80 text-white px-2.5 py-1 rounded-lg transition"
+                  >
+                    Changer
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-28 border-2 border-dashed border-white/15 hover:border-primary/50 hover:bg-white/5 rounded-xl flex flex-col items-center justify-center gap-2 transition"
+                >
+                  <ImagePlus className="w-6 h-6 text-white/30" />
+                  <span className="text-white/40 text-xs">Cliquer pour ajouter une photo</span>
+                  <span className="text-white/25 text-[10px]">JPG, PNG, WebP · max 5 Mo</span>
+                </button>
+              )}
+            </div>
+
+            {/* Nom */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Nom *</Label>
               <Input
@@ -304,6 +419,7 @@ const AdminMenu = () => {
               />
             </div>
 
+            {/* Catégorie */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Catégorie *</Label>
               {!form.useNewCategory ? (
@@ -350,6 +466,7 @@ const AdminMenu = () => {
               )}
             </div>
 
+            {/* Prix */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Prix (FCFA) *</Label>
               <Input
@@ -362,6 +479,7 @@ const AdminMenu = () => {
               />
             </div>
 
+            {/* Description */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Description</Label>
               <Input
@@ -372,9 +490,12 @@ const AdminMenu = () => {
               />
             </div>
 
+            {/* Emoji + Disponible */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <Label className="text-white/70 text-xs mb-1.5 block">Emoji</Label>
+                <Label className="text-white/70 text-xs mb-1.5 block">
+                  Emoji{previewSrc ? ' (ignoré si photo)' : ''}
+                </Label>
                 <Input
                   value={form.emoji}
                   onChange={(e) => setForm((f) => ({ ...f, emoji: e.target.value }))}
@@ -409,9 +530,14 @@ const AdminMenu = () => {
               disabled={saving}
               className="bg-primary hover:bg-primary/80 text-white"
             >
-              {saving
-                ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                : editId ? 'Enregistrer' : 'Ajouter'}
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  {imageFile ? 'Upload…' : 'Enregistrement…'}
+                </span>
+              ) : (
+                editId ? 'Enregistrer' : 'Ajouter'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
