@@ -184,9 +184,9 @@ const AdminMenu = () => {
       name: form.name.trim(),
       category,
       price: parseFloat(form.price),
-      description: form.description.trim() || null,
-      emoji: form.emoji.trim() || null,
-      image_url: finalImageUrl,
+      description: form.description.trim() || '',
+      emoji: form.emoji.trim() || '🍽️',
+      image_url: finalImageUrl ?? '',
       available: form.available,
       updated_at: new Date().toISOString(),
     };
