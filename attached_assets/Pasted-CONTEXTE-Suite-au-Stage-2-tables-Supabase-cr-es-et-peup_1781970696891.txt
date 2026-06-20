@@ -1,0 +1,42 @@
+CONTEXTE
+Suite au Stage 2 (tables Supabase créées et peuplées avec succès : menu_items, 
+heures_pizzeria, orders_pizzeria, informations_pizzeria + compte admin Supabase Auth créé).
+
+TÂCHE
+
+Étape 1 - Corriger les 2 produits manquants
+2 des 325 produits de src/data/menuPizzeria.ts n'ont pas été insérés dans menu_items 
+(probablement à cause d'apostrophes mal échappées dans le nom ou la description). 
+Identifie ces 2 produits, corrige l'échappement SQL et insère-les. Vérifie ensuite 
+que menu_items contient bien 325 lignes.
+
+Étape 2 - Unifier les clients Supabase
+Il existe deux fichiers clients Supabase en doublon :
+- src/lib/supabase.ts
+- src/integrations/supabase/client.ts (auto-généré par Lovable)
+Garde un seul client (celui auto-généré par Lovable dans src/integrations/supabase/client.ts 
+est généralement la convention à conserver pour rester compatible avec l'éditeur Lovable). 
+Mets à jour tous les imports dans le projet pour pointer vers ce client unique. 
+Supprime l'autre fichier.
+
+Étape 3 - Brancher le frontend sur Supabase
+Remplace les appels actuels vers l'API Netlify (useApiService) par des appels directs 
+au client Supabase pour la LECTURE uniquement dans ces composants :
+- Page /menu (actuellement src/data/menuPizzeria.ts) → lire depuis la table menu_items
+- Heurs.tsx → lire depuis heures_pizzeria
+- LandingPage.tsx → lire depuis informations_pizzeria
+- Supprime l'usage de src/data/products.ts dans MenuView.tsx (PWA) et branche-le 
+  aussi sur menu_items
+
+Pour l'instant, NE TOUCHE PAS à Admin.tsx (lecture/écriture admin) — ce sera l'étape 
+suivante avec l'auth.
+
+NE PAS ENCORE :
+- Toucher à l'authentification (Stage 3b)
+- Supprimer api.mjs ou le code Firebase backend
+- Toucher au fichier .env
+
+Donne-moi un résumé de ce qui a été modifié, fichier par fichier, et confirme que 
+le site affiche bien les 325 produits depuis Supabase (pas depuis menuPizzeria.ts) 
+en local avant qu'on passe au Stage 3b (auth admin + migration backend api.mjs + 
+nettoyage Firebase final).

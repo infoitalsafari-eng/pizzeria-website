@@ -1,24 +1,53 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Check } from 'lucide-react';
-import { products, categories } from '@/data/products';
+import { supabase } from '@/integrations/supabase/client';
 import { useCartStore } from '@/store/cartStore';
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image_url: string;
+  emoji: string;
+  available: boolean;
+}
+
 const MenuView = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Toutes');
-  const [addedId, setAddedId] = useState<number | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
   const addItem = useCartStore(s => s.addItem);
+
+  useEffect(() => {
+    supabase
+      .from('menu_items')
+      .select('id, name, description, price, category, image_url, emoji, available')
+      .eq('available', true)
+      .order('category')
+      .then(({ data }) => {
+        if (data) setProducts(data as Product[]);
+      });
+  }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach(p => set.add(p.category));
+    return ['Toutes', ...Array.from(set)];
+  }, [products]);
 
   const filtered = useMemo(() => {
     return products.filter(p => {
       const matchCat = category === 'Toutes' || p.category === category;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch && p.available;
+      return matchCat && matchSearch;
     });
-  }, [search, category]);
+  }, [products, search, category]);
 
-  const handleAdd = (p: typeof products[0]) => {
+  const handleAdd = (p: Product) => {
     addItem({ id: p.id, name: p.name, price: p.price, image_url: p.image_url });
     setAddedId(p.id);
     setTimeout(() => setAddedId(null), 800);
@@ -68,13 +97,19 @@ const MenuView = () => {
               className="glass-card overflow-hidden"
             >
               <div className="h-28 bg-gradient-to-br from-primary/15 to-secondary/10 flex items-center justify-center">
-                <span className="text-4xl">{p.category === 'Boissons' ? '🥤' : p.category === 'Spéciales' && p.name === 'Tiramisu' ? '🍰' : '🍕'}</span>
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-4xl">{p.emoji ?? '🍕'}</span>
+                )}
               </div>
               <div className="p-3 space-y-1">
                 <h3 className="font-semibold text-foreground text-sm truncate">{p.name}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-1">{p.description}</p>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-primary font-bold">{p.price.toFixed(2)} €</span>
+                  <span className="text-primary font-bold">
+                    {Number(p.price).toLocaleString('fr-FR')} FCFA
+                  </span>
                   <motion.button
                     whileTap={{ scale: 0.85 }}
                     onClick={() => handleAdd(p)}
@@ -95,10 +130,17 @@ const MenuView = () => {
         </AnimatePresence>
       </div>
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && products.length > 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-4xl mb-3">🔍</p>
-          <p>Aucun résultat trouvé</p>
+          <p>Aucun r\u00e9sultat trouv\u00e9</p>
+        </div>
+      )}
+
+      {products.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-4xl mb-3">⏳</p>
+          <p>Chargement du menu…</p>
         </div>
       )}
     </div>

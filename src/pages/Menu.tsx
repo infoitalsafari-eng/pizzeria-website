@@ -1,13 +1,27 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, X } from 'lucide-react';
-import { menuItems } from '@/data/menuPizzeria';
+import { supabase } from '@/integrations/supabase/client';
 import type { MenuItem } from '@/data/types';
 import logo from '@/assets/logo.png';
 
 const Menu = () => {
-  const items: MenuItem[] = menuItems;
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('menu_items')
+      .select('*')
+      .order('category')
+      .then(({ data, error: err }) => {
+        if (err) setError(err.message);
+        else setItems((data as MenuItem[]) ?? []);
+        setLoading(false);
+      });
+  }, []);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -95,94 +109,108 @@ const Menu = () => {
           )}
         </div>
 
-        {/* Category pagination */}
-        <div className="-mx-5 px-5 mb-5 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 w-max">
-            {categories.map((cat) => {
-              const active = activeCat === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setActiveCat(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
-                    active
-                      ? 'bg-white text-neutral-900 border-white shadow'
-                      : 'bg-white/10 text-white border-white/25 hover:bg-white/20'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {loading && (
+          <div className="text-center py-10 text-white/80">Chargement du menu…</div>
+        )}
 
-        {filtered.length === 0 && (
-          <div className="text-center py-10 text-white/80">
-            Aucun résultat.
+        {error && !loading && (
+          <div className="text-center py-10 text-white/90">
+            Impossible de charger le menu.
           </div>
         )}
 
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([category, list], catIdx) => (
-            <motion.section
-              key={category}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: catIdx * 0.1, duration: 0.5 }}
-            >
-              <h2 className="text-lg font-bold mb-3 px-1">{category}</h2>
-              <div className="space-y-3">
-                {list.map((item, idx) => (
-                  <motion.div
-                    key={item.id ?? `${category}-${idx}`}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: catIdx * 0.1 + idx * 0.05, duration: 0.4 }}
-                    className="rounded-2xl shadow-lg flex items-center gap-3 p-3"
-                    style={{
-                      background:
-                        'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)',
-                    }}
-                  >
-                    <div className="w-16 h-16 rounded-xl bg-primary/30 flex items-center justify-center overflow-hidden shrink-0">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name ?? ''}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-3xl">{item.emoji ?? '🍽️'}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-bold text-white leading-tight truncate">
-                          {item.name ?? 'Sans nom'}
-                        </p>
-                        {item.price != null && (
-                          <span className="text-primary font-bold whitespace-nowrap">
-                            {Number(item.price).toLocaleString('fr-FR')} FCFA
-                          </span>
-                        )}
-                      </div>
-                      {item.description && (
-                        <p className="text-xs text-neutral-300 mt-1 line-clamp-2">
-                          {item.description}
-                        </p>
-                      )}
-                      {item.available === false && (
-                        <p className="text-xs text-red-300 mt-1">Indisponible</p>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+        {!loading && !error && (
+          <>
+            {/* Category pagination */}
+            <div className="-mx-5 px-5 mb-5 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 w-max">
+                {categories.map((cat) => {
+                  const active = activeCat === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setActiveCat(cat)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
+                        active
+                          ? 'bg-white text-neutral-900 border-white shadow'
+                          : 'bg-white/10 text-white border-white/25 hover:bg-white/20'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
               </div>
-            </motion.section>
-          ))}
-        </div>
+            </div>
+
+            {filtered.length === 0 && (
+              <div className="text-center py-10 text-white/80">
+                Aucun résultat.
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {Object.entries(grouped).map(([category, list], catIdx) => (
+                <motion.section
+                  key={category}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: catIdx * 0.1, duration: 0.5 }}
+                >
+                  <h2 className="text-lg font-bold mb-3 px-1">{category}</h2>
+                  <div className="space-y-3">
+                    {list.map((item, idx) => (
+                      <motion.div
+                        key={item.id ?? `${category}-${idx}`}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: catIdx * 0.1 + idx * 0.05, duration: 0.4 }}
+                        className="rounded-2xl shadow-lg flex items-center gap-3 p-3"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)',
+                        }}
+                      >
+                        <div className="w-16 h-16 rounded-xl bg-primary/30 flex items-center justify-center overflow-hidden shrink-0">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.name ?? ''}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-3xl">{item.emoji ?? '🍽️'}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bold text-white leading-tight truncate">
+                              {item.name ?? 'Sans nom'}
+                            </p>
+                            {item.price != null && (
+                              <span className="text-primary font-bold whitespace-nowrap">
+                                {Number(item.price).toLocaleString('fr-FR')} FCFA
+                              </span>
+                            )}
+                          </div>
+                          {item.description && (
+                            <p className="text-xs text-neutral-300 mt-1 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+                          {item.available === false && (
+                            <p className="text-xs text-red-300 mt-1">Indisponible</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="mt-10 mb-4 text-center text-[11px] text-white/70">
           © 2026 Pizzeria Chez Moi · Since 2019

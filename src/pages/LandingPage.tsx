@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
@@ -16,7 +16,7 @@ import {
 import { isMobileDevice } from '@/lib/device';
 import InstallPopup from '@/components/InstallPopup';
 import logo from '@/assets/logo.png';
-import { useApiService } from "@/services/apiService";
+import { supabase } from '@/integrations/supabase/client';
 
 interface LinkCardProps {
   href?: string;
@@ -87,9 +87,18 @@ const LandingPage = () => {
   const isMobile = false;
   const navigate = useNavigate();
 
-  const { data: informations } = useApiService<Infos>("informations-pizzeria");
+  const [info, setInfo] = useState<Infos | null>(null);
 
-  const info = informations?.[0];
+  useEffect(() => {
+    supabase
+      .from('informations_pizzeria')
+      .select('id, instagram, facebook, whatsapp, service, maps')
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data) setInfo(data as Infos);
+      });
+  }, []);
 
   const infos = {
     instagram: info?.instagram ? `https://instagram.com/${info.instagram}` : '#',
@@ -180,7 +189,7 @@ const LandingPage = () => {
             internal
             icon={<UtensilsCrossed className="w-6 h-6" />}
             title="MENU – PIZZERIA"
-            subtitle="Découvrir notre carte"
+            subtitle="D\u00e9couvrir notre carte"
             delay={0.4}
           />
           <LinkCard
@@ -188,7 +197,7 @@ const LandingPage = () => {
             internal
             icon={<Clock className="w-6 h-6" />}
             title="NOS HEURES"
-            subtitle="Découvrir nos heures"
+            subtitle="D\u00e9couvrir nos heures"
             delay={0.4}
           />
           <LinkCard
@@ -202,7 +211,7 @@ const LandingPage = () => {
             href={infos.whatsapp}
             icon={<MessageCircle className="w-6 h-6" />}
             title="COMMANDER VIA WHATSAPP"
-            subtitle="Réponse rapide"
+            subtitle="R\u00e9ponse rapide"
             delay={0.5}
           />
           <LinkCard
@@ -243,7 +252,7 @@ const LandingPage = () => {
           </a>
         </motion.div>
 
-        <p className="mt-8 text-[11px] text-white/70">© 2026 Pizzeria Chez Moi · Since 2019</p>
+        <p className="mt-8 text-[11px] text-white/70">\u00a9 2026 Pizzeria Chez Moi · Since 2019</p>
 
         {/* Admin link */}
         <motion.div
