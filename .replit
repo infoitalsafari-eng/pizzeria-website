@@ -42,3 +42,8 @@ waitForPort = 8080
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "placeholder_will_be_set_from_secret"
