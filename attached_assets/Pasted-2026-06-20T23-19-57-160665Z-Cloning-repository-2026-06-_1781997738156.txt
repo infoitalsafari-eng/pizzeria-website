@@ -1,0 +1,48 @@
+2026-06-20T23:19:57.160665Z	Cloning repository...
+2026-06-20T23:19:58.243647Z	From https://github.com/infoitalsafari-eng/pizzeria-website
+2026-06-20T23:19:58.244026Z	 * branch            843a1d65daf0f146236ec7e41d51a37af8ab8371 -> FETCH_HEAD
+2026-06-20T23:19:58.244125Z	
+2026-06-20T23:19:58.273314Z	HEAD is now at 843a1d6 Force npm via .npmrc
+2026-06-20T23:19:58.273686Z	
+2026-06-20T23:19:58.413465Z	
+2026-06-20T23:19:58.413858Z	Using v2 root directory strategy
+2026-06-20T23:19:58.428768Z	Success: Finished cloning repository files
+2026-06-20T23:20:00.206964Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-06-20T23:20:00.207427Z	
+2026-06-20T23:20:00.375356Z	No Wrangler configuration file found. Continuing.
+2026-06-20T23:20:00.873704Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2026-06-20T23:20:00.875884Z	Installing project dependencies: npm clean-install --progress=false
+2026-06-20T23:20:05.011967Z	npm warn deprecated whatwg-encoding@2.0.0: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-06-20T23:20:05.403292Z	npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+2026-06-20T23:20:06.865588Z	npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+2026-06-20T23:20:07.437902Z	npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+2026-06-20T23:20:09.145713Z	npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+2026-06-20T23:20:09.923890Z	npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-06-20T23:20:00.206964Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-06-20T23:20:00.207427Z	
+2026-06-20T23:20:00.375356Z	No Wrangler configuration file found. Continuing.
+2026-06-20T23:20:00.873704Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2026-06-20T23:20:00.875884Z	Installing project dependencies: npm clean-install --progress=false
+2026-06-20T23:20:05.011967Z	npm warn deprecated whatwg-encoding@2.0.0: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-06-20T23:20:05.403292Z	npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+2026-06-20T23:20:06.865588Z	npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+2026-06-20T23:20:07.437902Z	npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+2026-06-20T23:20:09.145713Z	npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+2026-06-20T23:20:09.923890Z	npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-06-20T23:21:15.305699Z	npm error code ENOTFOUND
+2026-06-20T23:21:15.306095Z	npm error syscall getaddrinfo
+2026-06-20T23:21:15.306193Z	npm error errno ENOTFOUND
+2026-06-20T23:21:15.306300Z	npm error network request to http://package-firewall.replit.local/npm/iceberg-js/-/iceberg-js-0.8.1.tgz failed, reason: getaddrinfo ENOTFOUND package-firewall.replit.local
+2026-06-20T23:21:15.306395Z	npm error network This is a problem related to network connectivity.
+2026-06-20T23:21:15.306448Z	npm error network In most cases you are behind a proxy or have bad network settings.
+2026-06-20T23:21:15.306494Z	npm error network
+2026-06-20T23:21:15.306561Z	npm error network If you are behind a proxy, please make sure that the
+2026-06-20T23:21:15.306599Z	npm error network 'proxy' config is set properly.  See: 'npm help config'
+2026-06-20T23:21:15.309327Z	npm error A complete log of this run can be found in: /opt/buildhome/.npm/_logs/2026-06-20T23_20_02_139Z-debug-0.log
+2026-06-20T23:21:15.507628Z	Error: Exit with error code: 1
+2026-06-20T23:21:15.508209Z	    at ChildProcess.<anonymous> (/snapshot/dist/run-build.js)
+2026-06-20T23:21:15.508316Z	    at Object.onceWrapper (node:events:652:26)
+2026-06-20T23:21:15.508379Z	    at ChildProcess.emit (node:events:537:28)
+2026-06-20T23:21:15.508529Z	    at ChildProcess._handle.onexit (node:internal/child_process:291:12)
+2026-06-20T23:21:15.514447Z	Failed: build command exited with code: 1
+2026-06-20T23:21:16.114381Z	Failed: error occurred while running build command
