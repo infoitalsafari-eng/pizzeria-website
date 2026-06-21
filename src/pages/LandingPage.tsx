@@ -254,21 +254,6 @@ const LandingPage = () => {
 
         <p className="mt-8 text-[11px] text-white/70">© 2026 Pizzeria Chez Moi · Since 2019</p>
 
-        {/* Admin link */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="mb-4 mt-2"
-        >
-          <button
-            onClick={() => navigate('/admin/login')}
-            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 text-[11px] transition"
-          >
-            <Lock className="w-3 h-3" />
-            Se connecter
-          </button>
-        </motion.div>
       </div>
 
       <InstallPopup open={installOpen} onClose={() => setInstallOpen(false)} />
