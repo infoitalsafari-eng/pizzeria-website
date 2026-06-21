@@ -1,15 +1,20 @@
 import { useMemo, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, X } from 'lucide-react';
+import { ArrowLeft, Search, X, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { MenuItem } from '@/data/types';
 import logo from '@/assets/logo.png';
+import { useCartStore } from '@/store/cartStore';
+import CartDrawer from '@/components/CartDrawer';
 
 const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const { addItem, updateQuantity, itemCount, items: cartItems } = useCartStore();
 
   useEffect(() => {
     supabase
@@ -37,7 +42,7 @@ const Menu = () => {
     return items.filter((i) => {
       const catOk = activeCat === 'Tout' || (i.category ?? 'Autres') === activeCat;
       const sOk = !q || (i.name ?? '').toLowerCase().includes(q);
-      return catOk && sOk;
+      return catOk && sOk && i.available !== false;
     });
   }, [items, activeCat, search]);
 
@@ -52,6 +57,9 @@ const Menu = () => {
     [filtered],
   );
 
+  const getCartItem = (id: string) => cartItems.find((c) => c.id === id);
+  const count = itemCount();
+
   return (
     <div
       className="min-h-screen w-full"
@@ -60,7 +68,7 @@ const Menu = () => {
           'linear-gradient(135deg, hsl(56, 28%, 68%) 0%, hsl(0, 90%, 47%) 100%)',
       }}
     >
-      <div className="mx-auto max-w-md px-5 py-6 text-white">
+      <div className="mx-auto max-w-md px-4 sm:px-5 py-6 text-white pb-28">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Link
@@ -72,7 +80,26 @@ const Menu = () => {
           <div className="w-24 h-14 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden p-1">
             <img src={logo} alt="Pizzeria Chez Moi" className="w-24 h-14 object-contain" />
           </div>
-          <div className="w-9" />
+          <button
+            onClick={() => setCartOpen(true)}
+            className="relative w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center hover:bg-white/25 transition"
+            aria-label="Ouvrir le panier"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <AnimatePresence>
+              {count > 0 && (
+                <motion.span
+                  key="badge"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-[hsl(0,90%,47%)] text-[10px] font-bold flex items-center justify-center"
+                >
+                  {count > 99 ? '99+' : count}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
 
         <motion.h1
@@ -121,8 +148,8 @@ const Menu = () => {
 
         {!loading && !error && (
           <>
-            {/* Category pagination */}
-            <div className="-mx-5 px-5 mb-5 overflow-x-auto scrollbar-hide">
+            {/* Category pills */}
+            <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5 overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 w-max">
                 {categories.map((cat) => {
                   const active = activeCat === cat;
@@ -156,55 +183,104 @@ const Menu = () => {
                   key={category}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: catIdx * 0.1, duration: 0.5 }}
+                  transition={{ delay: catIdx * 0.05, duration: 0.4 }}
                 >
                   <h2 className="text-lg font-bold mb-3 px-1">{category}</h2>
-                  <div className="space-y-3">
-                    {list.map((item, idx) => (
-                      <motion.div
-                        key={item.id ?? `${category}-${idx}`}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: catIdx * 0.1 + idx * 0.05, duration: 0.4 }}
-                        className="rounded-2xl shadow-lg flex items-center gap-3 p-3"
-                        style={{
-                          background:
-                            'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)',
-                        }}
-                      >
-                        <div className="w-16 h-16 rounded-xl bg-primary/30 flex items-center justify-center overflow-hidden shrink-0">
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.name ?? ''}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-3xl">{item.emoji ?? '🍽️'}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-bold text-white leading-tight truncate">
-                              {item.name ?? 'Sans nom'}
-                            </p>
-                            {item.price != null && (
-                              <span className="text-primary font-bold whitespace-nowrap">
-                                {Number(item.price).toLocaleString('fr-FR')} FCFA
-                              </span>
-                            )}
+                  <div className="space-y-2.5">
+                    {list.map((item) => {
+                      const cartItem = getCartItem(String(item.id));
+                      const inCart = !!cartItem;
+
+                      return (
+                        <div
+                          key={item.id ?? item.name}
+                          className="rounded-2xl shadow-lg p-3"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)',
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Image / Emoji */}
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[hsl(0,90%,47%)]/20 flex items-center justify-center overflow-hidden shrink-0">
+                              {item.image_url ? (
+                                <img
+                                  src={item.image_url}
+                                  alt={item.name ?? ''}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-3xl">{item.emoji ?? '🍽️'}</span>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-white text-sm leading-tight">
+                                {item.name ?? 'Sans nom'}
+                              </p>
+                              {item.description && (
+                                <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
+                                  {item.description}
+                                </p>
+                              )}
+                              {item.price != null && (
+                                <p className="text-[hsl(0,90%,60%)] font-bold text-sm mt-1">
+                                  {Number(item.price).toLocaleString('fr-FR')} FCFA
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Cart controls */}
+                            <div className="shrink-0">
+                              {inCart ? (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(String(item.id), cartItem.quantity - 1)
+                                    }
+                                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                                    aria-label="Diminuer"
+                                  >
+                                    <Minus className="w-3 h-3 text-white" />
+                                  </button>
+                                  <span className="w-5 text-center text-white font-bold text-sm">
+                                    {cartItem.quantity}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(String(item.id), cartItem.quantity + 1)
+                                    }
+                                    className="w-7 h-7 rounded-full flex items-center justify-center transition"
+                                    style={{ background: 'hsl(0,90%,47%)' }}
+                                    aria-label="Augmenter"
+                                  >
+                                    <Plus className="w-3 h-3 text-white" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() =>
+                                    addItem({
+                                      id: String(item.id),
+                                      name: item.name ?? '',
+                                      price: Number(item.price ?? 0),
+                                      image_url: item.image_url ?? '',
+                                      emoji: item.emoji ?? '🍽️',
+                                    })
+                                  }
+                                  className="w-8 h-8 rounded-full flex items-center justify-center transition hover:scale-110 active:scale-95"
+                                  style={{ background: 'hsl(0,90%,47%)' }}
+                                  aria-label={`Ajouter ${item.name}`}
+                                >
+                                  <Plus className="w-4 h-4 text-white" />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          {item.description && (
-                            <p className="text-xs text-neutral-300 mt-1 line-clamp-2">
-                              {item.description}
-                            </p>
-                          )}
-                          {item.available === false && (
-                            <p className="text-xs text-red-300 mt-1">Indisponible</p>
-                          )}
                         </div>
-                      </motion.div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </motion.section>
               ))}
@@ -216,6 +292,34 @@ const Menu = () => {
           © 2026 Pizzeria Chez Moi · Since 2019
         </p>
       </div>
+
+      {/* Floating cart button */}
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.button
+            key="float-cart"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            onClick={() => setCartOpen(true)}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-full shadow-2xl font-bold text-white text-sm"
+            style={{
+              background:
+                'linear-gradient(135deg, hsl(0,90%,47%) 0%, hsl(15,90%,40%) 100%)',
+              boxShadow: '0 8px 32px hsl(0,90%,47%,0.5)',
+            }}
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <span>Voir le panier</span>
+            <span className="bg-white text-[hsl(0,90%,47%)] text-xs font-bold px-2 py-0.5 rounded-full">
+              {count}
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </div>
   );
 };
