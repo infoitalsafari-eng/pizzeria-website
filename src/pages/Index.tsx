@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { getAppContext, AppContext } from '@/lib/device';
 import LandingPage from '@/pages/LandingPage';
-import PWAApp from '@/components/PWAApp';
 
 const Index = () => {
   const [context, setContext] = useState<AppContext>('desktop');
@@ -10,9 +10,9 @@ const Index = () => {
     setContext(getAppContext());
   }, []);
 
-  // PWA installed → show app directly
+  // PWA installed → go straight to menu, no auth required
   if (context === 'pwa-installed') {
-    return <PWAApp />;
+    return <Navigate to="/menu" replace />;
   }
 
   // Desktop or mobile browser → landing page
