@@ -143,13 +143,15 @@ const Admin = () => {
             />
           </Link>
 
-          <StatCard
-            icon={<Package className="w-5 h-5 text-white" />}
-            label="Commandes actives"
-            count={activeOrdersCount === null ? '…' : activeOrdersCount}
-            color="bg-yellow-600/60"
-            delay={0.3}
-          />
+          <Link to="/admin/commandes" className="block">
+            <StatCard
+              icon={<Package className="w-5 h-5 text-white" />}
+              label="Commandes actives"
+              count={activeOrdersCount === null ? '…' : activeOrdersCount}
+              color="bg-yellow-600/60"
+              delay={0.3}
+            />
+          </Link>
 
           <Link to="/admin/informations" className="block">
             <StatCard
@@ -179,6 +181,7 @@ const Admin = () => {
               { to: '/admin/menu', label: 'Gérer le menu', desc: 'Ajouter, modifier, supprimer des produits', color: 'bg-primary/20 hover:bg-primary/30' },
               { to: '/admin/heures', label: 'Gérer les horaires', desc: "Modifier les heures d'ouverture", color: 'bg-orange-600/20 hover:bg-orange-600/30' },
               { to: '/admin/informations', label: 'Gérer les informations', desc: 'Instagram, WhatsApp, téléphone, Maps', color: 'bg-green-700/20 hover:bg-green-700/30' },
+              { to: '/admin/commandes', label: 'Voir les commandes', desc: 'Historique et gestion des statuts', color: 'bg-yellow-600/20 hover:bg-yellow-600/30' },
             ].map(({ to, label, desc, color }) => (
               <Link
                 key={to}

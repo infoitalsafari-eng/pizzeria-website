@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import AdminMenu from "./pages/AdminMenu";
 import AdminHeures from "./pages/AdminHeures";
 import AdminInformations from "./pages/AdminInformations";
+import AdminCommandes from "./pages/AdminCommandes";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,14 @@ const App = () => (
             element={
               <ProtectedAdminRoute>
                 <AdminInformations />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/commandes"
+            element={
+              <ProtectedAdminRoute>
+                <AdminCommandes />
               </ProtectedAdminRoute>
             }
           />
