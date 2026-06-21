@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, X, ShoppingCart, Plus, Minus } from 'lucide-react';
@@ -34,8 +34,19 @@ const Menu = () => {
     return ['Tout', ...Array.from(set)];
   }, [items]);
 
-  const [activeCat, setActiveCat] = useState<string>('Tout');
+  const [activeCat, setActiveCat] = useState<string>('Pizza');
   const [search, setSearch] = useState('');
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    const btn = btnRefs.current[activeCat];
+    if (!container || !btn) return;
+    const targetScroll = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
+    container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+  }, [activeCat]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -149,13 +160,14 @@ const Menu = () => {
         {!loading && !error && (
           <>
             {/* Category pills */}
-            <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5 overflow-x-auto scrollbar-hide">
+            <div ref={scrollRef} className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5 overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 w-max">
                 {categories.map((cat) => {
                   const active = activeCat === cat;
                   return (
                     <button
                       key={cat}
+                      ref={(el) => { btnRefs.current[cat] = el; }}
                       type="button"
                       onClick={() => setActiveCat(cat)}
                       className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
