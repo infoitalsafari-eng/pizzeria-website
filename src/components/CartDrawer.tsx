@@ -321,7 +321,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                       value={form.name}
                       onChange={(e) => { setForm(f => ({ ...f, name: e.target.value })); setErrors(er => ({ ...er, name: undefined })); }}
                       placeholder="Ex : Amadou Ndjidda"
-                      className={`w-full px-4 py-3 rounded-xl bg-white/8 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition ${errors.name ? 'border-red-400' : 'border-white/15'}`}
+                      className={`w-full px-4 py-3 rounded-xl bg-white/10 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition autofill:bg-white/10 ${errors.name ? 'border-red-400' : 'border-white/15'}`}
                     />
                     {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
                   </div>
@@ -338,7 +338,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                       value={form.phone}
                       onChange={(e) => { setForm(f => ({ ...f, phone: e.target.value })); setErrors(er => ({ ...er, phone: undefined })); }}
                       placeholder="Ex : 677 123 456"
-                      className={`w-full px-4 py-3 rounded-xl bg-white/8 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition ${errors.phone ? 'border-red-400' : 'border-white/15'}`}
+                      className={`w-full px-4 py-3 rounded-xl bg-white/10 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition autofill:bg-white/10 ${errors.phone ? 'border-red-400' : 'border-white/15'}`}
                     />
                     {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
                   </div>
@@ -388,7 +388,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                           value={form.address}
                           onChange={(e) => { setForm(f => ({ ...f, address: e.target.value })); setErrors(er => ({ ...er, address: undefined })); }}
                           placeholder="Quartier, repère… Ex : Quartier Administratif, à côté de la mairie"
-                          className={`w-full px-4 py-3 rounded-xl bg-white/8 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition resize-none ${errors.address ? 'border-red-400' : 'border-white/15'}`}
+                          className={`w-full px-4 py-3 rounded-xl bg-white/10 border text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition resize-none ${errors.address ? 'border-red-400' : 'border-white/15'}`}
                         />
                         {errors.address && <p className="text-red-400 text-xs mt-1">{errors.address}</p>}
                       </motion.div>
@@ -405,7 +405,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                       value={form.note}
                       onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
                       placeholder="Ex : sans oignons, sonner 2 fois…"
-                      className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/15 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition resize-none"
+                      className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[hsl(0,90%,47%)] transition resize-none"
                     />
                   </div>
                 </div>
