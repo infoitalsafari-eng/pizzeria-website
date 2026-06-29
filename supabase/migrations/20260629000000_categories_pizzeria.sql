@@ -1,5 +1,11 @@
 -- Migration: catégories & sous-catégories menu
 -- Task #7 — Pizzeria Chez Moi
+--
+-- Sécurité : même modèle que les autres tables du projet (menu_items,
+-- heures_pizzeria, informations_pizzeria, orders_pizzeria) : la lecture
+-- est publique et toutes les écritures sont réservées aux utilisateurs
+-- authentifiés (Supabase Auth). Un seul compte admin peut s'authentifier,
+-- ce qui garantit que seul l'administrateur peut modifier les données.
 
 -- ─── Table categories_pizzeria ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS categories_pizzeria (
@@ -13,18 +19,23 @@ CREATE TABLE IF NOT EXISTS categories_pizzeria (
 -- ─── RLS ─────────────────────────────────────────────────────────────────────
 ALTER TABLE categories_pizzeria ENABLE ROW LEVEL SECURITY;
 
+-- Lecture publique (cohérent avec public_read_menu, public_read_heures, etc.)
 CREATE POLICY categories_public_read
   ON categories_pizzeria FOR SELECT
   TO anon, authenticated
   USING (true);
 
-CREATE POLICY categories_admin_write
+-- Écritures réservées aux utilisateurs authentifiés (admin uniquement en
+-- pratique — cohérent avec auth_write_menu, auth_write_heures, etc.)
+CREATE POLICY auth_write_categories
   ON categories_pizzeria FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
 -- ─── Seed : 4 catégories principales fixes ───────────────────────────────────
+-- Ces 4 catégories correspondent aux onglets fixes du menu public.
+-- Elles ne peuvent pas être renommées ni supprimées via l'interface admin.
 INSERT INTO categories_pizzeria (name, position)
 SELECT t.name, t.pos
 FROM (VALUES
