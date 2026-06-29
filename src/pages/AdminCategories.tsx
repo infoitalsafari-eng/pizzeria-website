@@ -1,29 +1,23 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
 import type { Category } from '@/data/types';
 
-const MAIN_TABS = ['Pizza', 'Restaurant', 'Bar', 'Boutique'];
+const FIXED_MAINS = ['Pizza', 'Restaurant', 'Bar', 'Boutique'] as const;
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  // Inline edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
 
-  // Add subcategory state
   const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
   const [newSubName, setNewSubName] = useState('');
-
-  // Add main category state
-  const [addingMain, setAddingMain] = useState(false);
-  const [newMainName, setNewMainName] = useState('');
 
   const [saving, setSaving] = useState(false);
 
@@ -114,32 +108,19 @@ const AdminCategories = () => {
     setSaving(false);
   };
 
-  const addMainCategory = async () => {
-    const name = newMainName.trim();
-    if (!name) return;
-    setSaving(true);
-    const { data, error } = await supabase
-      .from('categories_pizzeria')
-      .insert({ name, parent_id: null, position: mainCategories.length + 1 })
-      .select()
-      .single();
-    if (error) toast.error('Erreur : ' + error.message);
-    else {
-      setCategories((prev) => [...prev, data as Category]);
-      toast.success('Catégorie ajoutée');
-    }
-    setAddingMain(false);
-    setNewMainName('');
-    setSaving(false);
-  };
-
-  const isMainProtected = (name: string) => MAIN_TABS.includes(name);
-
   return (
     <AdminLayout
       title="Catégories"
-      subtitle="Gérer les catégories et sous-catégories du menu"
+      subtitle="Sous-catégories des 4 onglets fixes du menu public"
     >
+      {/* Info banner */}
+      <div className="rounded-xl px-4 py-3 mb-4 flex items-start gap-2 bg-white/5 border border-white/10">
+        <Lock className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+        <p className="text-white/50 text-xs leading-relaxed">
+          Les 4 catégories principales (Pizza, Restaurant, Bar, Boutique) correspondent aux onglets fixes du menu public — elles ne peuvent pas être modifiées. Vous pouvez gérer leurs sous-catégories librement.
+        </p>
+      </div>
+
       {loading && (
         <div className="flex justify-center py-14">
           <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -151,8 +132,7 @@ const AdminCategories = () => {
           {mainCategories.map((main) => {
             const subs = getSubcategories(main.id);
             const isOpen = expanded[main.id];
-            const isEditing = editingId === main.id;
-            const protected_ = isMainProtected(main.name);
+            const isFixed = (FIXED_MAINS as readonly string[]).includes(main.name);
 
             return (
               <div
@@ -171,55 +151,56 @@ const AdminCategories = () => {
                       ? <ChevronDown className="w-4 h-4 text-white/50 shrink-0" />
                       : <ChevronRight className="w-4 h-4 text-white/50 shrink-0" />
                     }
-                    {isEditing ? (
-                      <input
-                        autoFocus
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(main.id);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                        className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-2 py-1 flex-1 focus:outline-none"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <span className="text-white font-semibold text-sm">
-                        {main.name}
-                        <span className="ml-2 text-white/40 text-xs font-normal">
-                          ({subs.length} sous-catégorie{subs.length !== 1 ? 's' : ''})
+                    <span className="text-white font-semibold text-sm">
+                      {main.name}
+                      {isFixed && (
+                        <span className="ml-2 text-[10px] text-white/30 font-normal bg-white/5 px-1.5 py-0.5 rounded">
+                          fixe
                         </span>
+                      )}
+                      <span className="ml-2 text-white/40 text-xs font-normal">
+                        ({subs.length} sous-catégorie{subs.length !== 1 ? 's' : ''})
                       </span>
-                    )}
+                    </span>
                   </button>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {isEditing ? (
-                      <>
-                        <button
-                          onClick={() => saveEdit(main.id)}
-                          disabled={saving}
-                          className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition"
-                        >
-                          <Check className="w-3.5 h-3.5 text-green-400" />
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
-                        >
-                          <X className="w-3.5 h-3.5 text-white/60" />
-                        </button>
-                      </>
+                    {isFixed ? (
+                      /* Fixed main: only allow adding subcategories */
+                      <button
+                        onClick={() => { setAddingSubFor(main.id); setExpanded(p => ({...p, [main.id]: true})); }}
+                        className="w-7 h-7 rounded-lg bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition"
+                        title="Ajouter une sous-catégorie"
+                      >
+                        <Plus className="w-3 h-3 text-primary" />
+                      </button>
                     ) : (
-                      <>
-                        <button
-                          onClick={() => startEdit(main)}
-                          className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
-                          title="Renommer"
-                        >
-                          <Edit2 className="w-3 h-3 text-white" />
-                        </button>
-                        {!protected_ && (
+                      /* Non-fixed main: full edit/delete/add sub */
+                      editingId === main.id ? (
+                        <>
+                          <button
+                            onClick={() => saveEdit(main.id)}
+                            disabled={saving}
+                            className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition"
+                          >
+                            <Check className="w-3.5 h-3.5 text-green-400" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                          >
+                            <X className="w-3.5 h-3.5 text-white/60" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEdit(main)}
+                            className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                            title="Renommer"
+                          >
+                            <Edit2 className="w-3 h-3 text-white" />
+                          </button>
                           <button
                             onClick={() => deleteCategory(main)}
                             disabled={saving}
@@ -228,18 +209,34 @@ const AdminCategories = () => {
                           >
                             <Trash2 className="w-3 h-3 text-red-400" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => { setAddingSubFor(main.id); setExpanded(p => ({...p, [main.id]: true})); }}
-                          className="w-7 h-7 rounded-lg bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition"
-                          title="Ajouter une sous-catégorie"
-                        >
-                          <Plus className="w-3 h-3 text-primary" />
-                        </button>
-                      </>
+                          <button
+                            onClick={() => { setAddingSubFor(main.id); setExpanded(p => ({...p, [main.id]: true})); }}
+                            className="w-7 h-7 rounded-lg bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition"
+                            title="Ajouter une sous-catégorie"
+                          >
+                            <Plus className="w-3 h-3 text-primary" />
+                          </button>
+                        </>
+                      )
                     )}
                   </div>
                 </div>
+
+                {/* Inline edit row for non-fixed mains (shown in the header area) */}
+                {editingId === main.id && !isFixed && (
+                  <div className="px-4 pb-3 -mt-1">
+                    <input
+                      autoFocus
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveEdit(main.id);
+                        if (e.key === 'Escape') cancelEdit();
+                      }}
+                      className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 w-full focus:outline-none"
+                    />
+                  </div>
+                )}
 
                 {/* Subcategories */}
                 <AnimatePresence initial={false}>
@@ -330,40 +327,6 @@ const AdminCategories = () => {
               </div>
             );
           })}
-
-          {/* Add main category */}
-          {addingMain ? (
-            <div
-              className="rounded-2xl px-4 py-3 flex items-center gap-2"
-              style={{ background: 'linear-gradient(135deg, hsl(60,3%,7%) 0%, hsl(0,3%,19%) 100%)' }}
-            >
-              <input
-                autoFocus
-                value={newMainName}
-                onChange={(e) => setNewMainName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') addMainCategory();
-                  if (e.key === 'Escape') { setAddingMain(false); setNewMainName(''); }
-                }}
-                placeholder="Nom de la catégorie…"
-                className="bg-white/10 border border-primary/40 text-white text-sm rounded-lg px-3 py-1.5 flex-1 focus:outline-none placeholder:text-white/30"
-              />
-              <button onClick={addMainCategory} disabled={saving} className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition">
-                <Check className="w-3.5 h-3.5 text-green-400" />
-              </button>
-              <button onClick={() => { setAddingMain(false); setNewMainName(''); }} className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-                <X className="w-3.5 h-3.5 text-white/60" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setAddingMain(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-white/20 text-white/50 hover:text-white/80 hover:border-white/40 text-sm transition"
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter une catégorie principale
-            </button>
-          )}
         </div>
       )}
     </AdminLayout>

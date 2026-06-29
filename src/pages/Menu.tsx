@@ -43,20 +43,21 @@ const Menu = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((i) => {
-      const catOk = !q && (i.category ?? '') === activeTab;
-      const searchOk = q && (i.name ?? '').toLowerCase().includes(q);
-      return (catOk || searchOk) && i.available !== false;
+      if (i.available === false) return false;
+      if ((i.category ?? '') !== activeTab) return false;
+      if (q && !(i.name ?? '').toLowerCase().includes(q)) return false;
+      return true;
     });
   }, [items, activeTab, search]);
 
   const grouped = useMemo(() => {
     return filtered.reduce<Record<string, MenuItem[]>>((acc, item) => {
-      const sub = (item.subcategory && item.subcategory.trim()) ? item.subcategory : (search.trim() ? (item.category ?? 'Autres') : 'Autres');
+      const sub = (item.subcategory && item.subcategory.trim()) ? item.subcategory : 'Autres';
       if (!acc[sub]) acc[sub] = [];
       acc[sub].push(item);
       return acc;
     }, {});
-  }, [filtered, search]);
+  }, [filtered]);
 
   const getCartItem = (id: string) => cartItems.find((c) => c.id === id);
   const count = itemCount();
@@ -136,31 +137,29 @@ const Menu = () => {
           )}
         </div>
 
-        {/* Main category tabs — shown only when not searching */}
-        {!search.trim() && (
-          <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5">
-            <div className="grid grid-cols-4 gap-1.5">
-              {MAIN_TABS.map(({ key, emoji }) => {
-                const active = activeTab === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setActiveTab(key)}
-                    className={`flex flex-col items-center gap-1 py-2.5 rounded-2xl border text-xs font-semibold transition ${
-                      active
-                        ? 'bg-white text-neutral-900 border-white shadow-lg scale-105'
-                        : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                    }`}
-                  >
-                    <span className="text-xl leading-none">{emoji}</span>
-                    <span className="leading-none">{key}</span>
-                  </button>
-                );
-              })}
-            </div>
+        {/* Main category tabs — always visible */}
+        <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5">
+          <div className="grid grid-cols-4 gap-1.5">
+            {MAIN_TABS.map(({ key, emoji }) => {
+              const active = activeTab === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setActiveTab(key)}
+                  className={`flex flex-col items-center gap-1 py-2.5 rounded-2xl border text-xs font-semibold transition ${
+                    active
+                      ? 'bg-white text-neutral-900 border-white shadow-lg scale-105'
+                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  }`}
+                >
+                  <span className="text-xl leading-none">{emoji}</span>
+                  <span className="leading-none">{key}</span>
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
         {loading && (
           <div className="text-center py-10 text-white/80">Chargement du menu…</div>
