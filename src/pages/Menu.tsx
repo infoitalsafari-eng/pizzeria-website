@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, X, ShoppingCart, Plus, Minus } from 'lucide-react';
@@ -7,6 +7,13 @@ import type { MenuItem } from '@/data/types';
 import logo from '@/assets/logo.png';
 import { useCartStore } from '@/store/cartStore';
 import CartDrawer from '@/components/CartDrawer';
+
+const MAIN_TABS = [
+  { key: 'Pizza', emoji: '🍕' },
+  { key: 'Restaurant', emoji: '🍽️' },
+  { key: 'Bar', emoji: '🍹' },
+  { key: 'Boutique', emoji: '🛒' },
+];
 
 const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -21,6 +28,8 @@ const Menu = () => {
       .from('menu_items')
       .select('*')
       .order('category')
+      .order('subcategory')
+      .order('name')
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
         else setItems((data as MenuItem[]) ?? []);
@@ -28,45 +37,26 @@ const Menu = () => {
       });
   }, []);
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    items.forEach((i) => set.add(i.category ?? 'Autres'));
-    return ['Tout', ...Array.from(set)];
-  }, [items]);
-
-  const [activeCat, setActiveCat] = useState<string>('Pizza');
+  const [activeTab, setActiveTab] = useState<string>('Pizza');
   const [search, setSearch] = useState('');
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    const btn = btnRefs.current[activeCat];
-    if (!container || !btn) return;
-    const targetScroll = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
-    container.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
-  }, [activeCat]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((i) => {
-      const catOk = activeCat === 'Tout' || (i.category ?? 'Autres') === activeCat;
-      const sOk = !q || (i.name ?? '').toLowerCase().includes(q);
-      return catOk && sOk && i.available !== false;
+      const catOk = !q && (i.category ?? '') === activeTab;
+      const searchOk = q && (i.name ?? '').toLowerCase().includes(q);
+      return (catOk || searchOk) && i.available !== false;
     });
-  }, [items, activeCat, search]);
+  }, [items, activeTab, search]);
 
-  const grouped = useMemo(
-    () =>
-      filtered.reduce<Record<string, MenuItem[]>>((acc, item) => {
-        const cat = item.category ?? 'Autres';
-        if (!acc[cat]) acc[cat] = [];
-        acc[cat].push(item);
-        return acc;
-      }, {}),
-    [filtered],
-  );
+  const grouped = useMemo(() => {
+    return filtered.reduce<Record<string, MenuItem[]>>((acc, item) => {
+      const sub = (item.subcategory && item.subcategory.trim()) ? item.subcategory : (search.trim() ? (item.category ?? 'Autres') : 'Autres');
+      if (!acc[sub]) acc[sub] = [];
+      acc[sub].push(item);
+      return acc;
+    }, {});
+  }, [filtered, search]);
 
   const getCartItem = (id: string) => cartItems.find((c) => c.id === id);
   const count = itemCount();
@@ -75,8 +65,7 @@ const Menu = () => {
     <div
       className="min-h-screen w-full"
       style={{
-        background:
-          'linear-gradient(135deg, hsl(56, 28%, 68%) 0%, hsl(0, 90%, 47%) 100%)',
+        background: 'linear-gradient(135deg, hsl(56, 28%, 68%) 0%, hsl(0, 90%, 47%) 100%)',
       }}
     >
       <div className="mx-auto max-w-md px-4 sm:px-5 py-6 text-white pb-28">
@@ -121,12 +110,12 @@ const Menu = () => {
         >
           Notre Menu
         </motion.h1>
-        <p className="text-center text-xs uppercase tracking-[0.15em] text-white/90 mb-6">
+        <p className="text-center text-xs uppercase tracking-[0.15em] text-white/90 mb-5">
           Authentique pizza italienne
         </p>
 
         {/* Search bar */}
-        <div className="relative mb-4">
+        <div className="relative mb-5">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/70" />
           <input
             type="text"
@@ -147,6 +136,32 @@ const Menu = () => {
           )}
         </div>
 
+        {/* Main category tabs — shown only when not searching */}
+        {!search.trim() && (
+          <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5">
+            <div className="grid grid-cols-4 gap-1.5">
+              {MAIN_TABS.map(({ key, emoji }) => {
+                const active = activeTab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveTab(key)}
+                    className={`flex flex-col items-center gap-1 py-2.5 rounded-2xl border text-xs font-semibold transition ${
+                      active
+                        ? 'bg-white text-neutral-900 border-white shadow-lg scale-105'
+                        : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{emoji}</span>
+                    <span className="leading-none">{key}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div className="text-center py-10 text-white/80">Chargement du menu…</div>
         )}
@@ -159,45 +174,28 @@ const Menu = () => {
 
         {!loading && !error && (
           <>
-            {/* Category pills */}
-            <div ref={scrollRef} className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-2 w-max">
-                {categories.map((cat) => {
-                  const active = activeCat === cat;
-                  return (
-                    <button
-                      key={cat}
-                      ref={(el) => { btnRefs.current[cat] = el; }}
-                      type="button"
-                      onClick={() => setActiveCat(cat)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
-                        active
-                          ? 'bg-white text-neutral-900 border-white shadow'
-                          : 'bg-white/10 text-white border-white/25 hover:bg-white/20'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {filtered.length === 0 && (
               <div className="text-center py-10 text-white/80">
-                Aucun résultat.
+                {search.trim()
+                  ? 'Aucun résultat pour cette recherche.'
+                  : 'Aucun produit dans cette catégorie.'}
               </div>
             )}
 
             <div className="space-y-6">
-              {Object.entries(grouped).map(([category, list], catIdx) => (
+              {Object.entries(grouped).map(([subcat, list], catIdx) => (
                 <motion.section
-                  key={category}
+                  key={subcat}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: catIdx * 0.05, duration: 0.4 }}
                 >
-                  <h2 className="text-lg font-bold mb-3 px-1">{category}</h2>
+                  {/* Subcategory header — only show if more than one subcategory or it's named */}
+                  {subcat !== 'Autres' && (
+                    <h2 className="text-sm font-bold mb-3 px-1 text-white/80 uppercase tracking-wider">
+                      {subcat}
+                    </h2>
+                  )}
                   <div className="space-y-2.5">
                     {list.map((item) => {
                       const cartItem = getCartItem(String(item.id));
@@ -317,8 +315,7 @@ const Menu = () => {
             onClick={() => setCartOpen(true)}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-full shadow-2xl font-bold text-white text-sm"
             style={{
-              background:
-                'linear-gradient(135deg, hsl(0,90%,47%) 0%, hsl(15,90%,40%) 100%)',
+              background: 'linear-gradient(135deg, hsl(0,90%,47%) 0%, hsl(15,90%,40%) 100%)',
               boxShadow: '0 8px 32px hsl(0,90%,47%,0.5)',
             }}
           >

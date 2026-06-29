@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import type { Category } from '@/data/types';
 
 interface MenuItem {
   id: string;
@@ -25,6 +26,7 @@ interface MenuItem {
   description: string | null;
   price: number;
   category: string;
+  subcategory: string | null;
   image_url: string | null;
   emoji: string | null;
   available: boolean;
@@ -35,27 +37,26 @@ interface MenuItem {
 interface FormState {
   name: string;
   category: string;
+  subcategory: string;
   price: string;
   description: string;
   emoji: string;
   available: boolean;
-  newCategory: string;
-  useNewCategory: boolean;
 }
 
 const EMPTY_FORM: FormState = {
   name: '',
   category: '',
+  subcategory: '',
   price: '',
   description: '',
   emoji: '',
   available: true,
-  newCategory: '',
-  useNewCategory: false,
 };
 
 const AdminMenu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('all');
@@ -73,7 +74,10 @@ const AdminMenu = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    fetchItems();
+    fetchCategories();
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -81,16 +85,33 @@ const AdminMenu = () => {
       .from('menu_items')
       .select('*')
       .order('category')
+      .order('subcategory')
       .order('name');
     if (error) toast.error('Erreur de chargement : ' + error.message);
     else setItems((data ?? []) as MenuItem[]);
     setLoading(false);
   };
 
-  const categories = useMemo(
-    () => [...new Set(items.map((i) => i.category).filter(Boolean))].sort(),
-    [items],
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories_pizzeria')
+      .select('*')
+      .order('position')
+      .order('name');
+    if (error) toast.error('Erreur catégories : ' + error.message);
+    else setCategories((data as Category[]) ?? []);
+  };
+
+  const mainCategories = useMemo(
+    () => categories.filter((c) => !c.parent_id),
+    [categories],
   );
+
+  const subcategoriesFor = (parentName: string) => {
+    const parent = categories.find((c) => !c.parent_id && c.name === parentName);
+    if (!parent) return [];
+    return categories.filter((c) => c.parent_id === parent.id);
+  };
 
   const filtered = useMemo(() => {
     let list = items;
@@ -121,12 +142,11 @@ const AdminMenu = () => {
     setForm({
       name: item.name ?? '',
       category: item.category ?? '',
+      subcategory: item.subcategory ?? '',
       price: String(item.price ?? ''),
       description: item.description ?? '',
       emoji: item.emoji ?? '',
       available: item.available,
-      newCategory: '',
-      useNewCategory: false,
     });
     resetImageState();
     setImageUrl(item.image_url ?? '');
@@ -154,8 +174,7 @@ const AdminMenu = () => {
   };
 
   const handleSave = async () => {
-    const category = form.useNewCategory ? form.newCategory.trim() : form.category;
-    if (!form.name.trim() || !category || !form.price) {
+    if (!form.name.trim() || !form.category || !form.price) {
       toast.error('Nom, catégorie et prix sont requis.');
       return;
     }
@@ -182,7 +201,8 @@ const AdminMenu = () => {
 
     const payload = {
       name: form.name.trim(),
-      category,
+      category: form.category,
+      subcategory: form.subcategory.trim() || null,
       price: parseFloat(form.price),
       description: form.description.trim() || '',
       emoji: form.emoji.trim() || '🍽️',
@@ -245,6 +265,7 @@ const AdminMenu = () => {
 
   const deleteName = deleteId ? items.find((i) => i.id === deleteId)?.name : '';
   const previewSrc = imagePreview || imageUrl || null;
+  const currentSubs = subcategoriesFor(form.category);
 
   return (
     <AdminLayout
@@ -274,8 +295,8 @@ const AdminMenu = () => {
           className="bg-white/10 border border-white/15 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary transition"
         >
           <option value="all" className="bg-neutral-900">Toutes les catégories</option>
-          {categories.map((c) => (
-            <option key={c} value={c} className="bg-neutral-900">{c}</option>
+          {mainCategories.map((c) => (
+            <option key={c.id} value={c.name} className="bg-neutral-900">{c.name}</option>
           ))}
         </select>
         <button
@@ -322,7 +343,7 @@ const AdminMenu = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-medium truncate">{item.name}</p>
                 <p className="text-white/50 text-xs truncate">
-                  {item.category} · {item.price?.toLocaleString('fr-FR')} FCFA
+                  {item.category}{item.subcategory ? ` › ${item.subcategory}` : ''} · {item.price?.toLocaleString('fr-FR')} FCFA
                 </p>
               </div>
               <Switch
@@ -371,7 +392,7 @@ const AdminMenu = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-1">
-            {/* Photo / Emoji */}
+            {/* Photo */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Photo</Label>
               {previewSrc ? (
@@ -422,52 +443,60 @@ const AdminMenu = () => {
               />
             </div>
 
-            {/* Catégorie */}
+            {/* Catégorie principale */}
             <div>
               <Label className="text-white/70 text-xs mb-1.5 block">Catégorie *</Label>
-              {!form.useNewCategory ? (
-                <div className="flex gap-2">
+              <Select
+                value={form.category}
+                onValueChange={(v) => setForm((f) => ({ ...f, category: v, subcategory: '' }))}
+              >
+                <SelectTrigger className="bg-white/10 border-white/15 text-white focus:border-primary">
+                  <SelectValue placeholder="Choisir une catégorie" />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-900 border-white/10 max-h-48">
+                  {mainCategories.map((c) => (
+                    <SelectItem key={c.id} value={c.name} className="text-white focus:bg-white/10">
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sous-catégorie */}
+            {form.category && (
+              <div>
+                <Label className="text-white/70 text-xs mb-1.5 block">
+                  Sous-catégorie
+                  <span className="ml-1 text-white/30">(optionnel)</span>
+                </Label>
+                {currentSubs.length > 0 ? (
                   <Select
-                    value={form.category}
-                    onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}
+                    value={form.subcategory || '__none__'}
+                    onValueChange={(v) => setForm((f) => ({ ...f, subcategory: v === '__none__' ? '' : v }))}
                   >
-                    <SelectTrigger className="bg-white/10 border-white/15 text-white flex-1 focus:border-primary">
-                      <SelectValue placeholder="Choisir une catégorie" />
+                    <SelectTrigger className="bg-white/10 border-white/15 text-white focus:border-primary">
+                      <SelectValue placeholder="Aucune sous-catégorie" />
                     </SelectTrigger>
                     <SelectContent className="bg-neutral-900 border-white/10 max-h-48">
-                      {categories.map((c) => (
-                        <SelectItem key={c} value={c} className="text-white focus:bg-white/10">
-                          {c}
+                      <SelectItem value="__none__" className="text-white/50 focus:bg-white/10">
+                        Aucune sous-catégorie
+                      </SelectItem>
+                      {currentSubs.map((s) => (
+                        <SelectItem key={s.id} value={s.name} className="text-white focus:bg-white/10">
+                          {s.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, useNewCategory: true, category: '' }))}
-                    className="text-xs text-primary hover:text-primary/80 whitespace-nowrap px-2 shrink-0"
-                  >
-                    + Nouvelle
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Input
-                    value={form.newCategory}
-                    onChange={(e) => setForm((f) => ({ ...f, newCategory: e.target.value }))}
-                    placeholder="Nouvelle catégorie"
-                    className="bg-white/10 border-white/15 text-white placeholder-white/30 flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, useNewCategory: false, newCategory: '' }))}
-                    className="text-xs text-white/50 hover:text-white px-2 shrink-0"
-                  >
-                    Annuler
-                  </button>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <p className="text-white/30 text-xs py-2">
+                    Aucune sous-catégorie pour « {form.category} ». Créez-en depuis{' '}
+                    <a href="/admin/categories" className="underline text-primary/80">Gérer les catégories</a>.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Prix */}
             <div>

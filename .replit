@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 
 [[ports]]
 localPort = 8080
@@ -47,3 +47,6 @@ outputType = "webview"
 
 [userenv.shared]
 VITE_SUPABASE_URL = "placeholder_will_be_set_from_secret"
+
+[nix]
+channel = "stable-25_05"

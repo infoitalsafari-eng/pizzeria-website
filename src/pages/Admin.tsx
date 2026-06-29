@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings } from 'lucide-react';
+import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
@@ -153,6 +153,16 @@ const Admin = () => {
             />
           </Link>
 
+          <Link to="/admin/categories" className="block">
+            <StatCard
+              icon={<Tag className="w-5 h-5 text-white" />}
+              label="Catégories & sous-catégories"
+              count="→"
+              color="bg-purple-600/60"
+              delay={0.33}
+            />
+          </Link>
+
           <Link to="/admin/informations" className="block">
             <StatCard
               icon={<Phone className="w-5 h-5 text-white" />}
@@ -179,6 +189,7 @@ const Admin = () => {
           <div className="space-y-2">
             {[
               { to: '/admin/menu', label: 'Gérer le menu', desc: 'Ajouter, modifier, supprimer des produits', color: 'bg-primary/20 hover:bg-primary/30' },
+              { to: '/admin/categories', label: 'Gérer les catégories', desc: 'Pizza, Restaurant, Bar, Boutique + sous-catégories', color: 'bg-purple-600/20 hover:bg-purple-600/30' },
               { to: '/admin/heures', label: 'Gérer les horaires', desc: "Modifier les heures d'ouverture", color: 'bg-orange-600/20 hover:bg-orange-600/30' },
               { to: '/admin/informations', label: 'Gérer les informations', desc: 'Instagram, WhatsApp, téléphone, Maps', color: 'bg-green-700/20 hover:bg-green-700/30' },
               { to: '/admin/commandes', label: 'Voir les commandes', desc: 'Historique et gestion des statuts', color: 'bg-yellow-600/20 hover:bg-yellow-600/30' },
