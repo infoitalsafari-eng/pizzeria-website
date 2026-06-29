@@ -3,20 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, X, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import type { MenuItem } from '@/data/types';
+import type { MenuItem, Category } from '@/data/types';
 import logo from '@/assets/logo.png';
 import { useCartStore } from '@/store/cartStore';
 import CartDrawer from '@/components/CartDrawer';
 
-const MAIN_TABS = [
-  { key: 'Pizza', emoji: '🍕' },
-  { key: 'Restaurant', emoji: '🍽️' },
-  { key: 'Bar', emoji: '🍹' },
-  { key: 'Boutique', emoji: '🛒' },
-];
+const EMOJI_MAP: Record<string, string> = {
+  'Pizza': '🍕',
+  'Restaurant': '🍽️',
+  'Bar': '🍹',
+  'Boutique': '🛒',
+};
+const getTabEmoji = (name: string) => EMOJI_MAP[name] ?? '🍴';
 
 const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [tabs, setTabs] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -24,17 +26,32 @@ const Menu = () => {
   const { addItem, updateQuantity, itemCount, items: cartItems } = useCartStore();
 
   useEffect(() => {
-    supabase
-      .from('menu_items')
-      .select('*')
-      .order('category')
-      .order('subcategory')
-      .order('name')
-      .then(({ data, error: err }) => {
-        if (err) setError(err.message);
-        else setItems((data as MenuItem[]) ?? []);
-        setLoading(false);
-      });
+    Promise.all([
+      supabase
+        .from('menu_items')
+        .select('*')
+        .order('category')
+        .order('subcategory')
+        .order('name'),
+      supabase
+        .from('categories_pizzeria')
+        .select('*')
+        .is('parent_id', null)
+        .order('position')
+        .order('name'),
+    ]).then(([menuRes, catsRes]) => {
+      if (menuRes.error) setError(menuRes.error.message);
+      else setItems((menuRes.data as MenuItem[]) ?? []);
+      const loadedTabs = (catsRes.data as Category[]) ?? [];
+      setTabs(loadedTabs);
+      if (loadedTabs.length > 0) {
+        setActiveTab((prev) => {
+          const names = loadedTabs.map((t) => t.name);
+          return names.includes(prev) ? prev : loadedTabs[0].name;
+        });
+      }
+      setLoading(false);
+    });
   }, []);
 
   const [activeTab, setActiveTab] = useState<string>('Pizza');
@@ -137,29 +154,31 @@ const Menu = () => {
           )}
         </div>
 
-        {/* Main category tabs — always visible */}
-        <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5">
-          <div className="grid grid-cols-4 gap-1.5">
-            {MAIN_TABS.map(({ key, emoji }) => {
-              const active = activeTab === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setActiveTab(key)}
-                  className={`flex flex-col items-center gap-1 py-2.5 rounded-2xl border text-xs font-semibold transition ${
-                    active
-                      ? 'bg-white text-neutral-900 border-white shadow-lg scale-105'
-                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                  }`}
-                >
-                  <span className="text-xl leading-none">{emoji}</span>
-                  <span className="leading-none">{key}</span>
-                </button>
-              );
-            })}
+        {/* Main category tabs — dynamic, always visible */}
+        {tabs.length > 0 && (
+          <div className="-mx-4 sm:-mx-5 px-4 sm:px-5 mb-5">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {tabs.map((tab) => {
+                const active = activeTab === tab.name;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.name)}
+                    className={`flex flex-col items-center gap-1 py-2.5 px-3 rounded-2xl border text-xs font-semibold transition shrink-0 min-w-[68px] ${
+                      active
+                        ? 'bg-white text-neutral-900 border-white shadow-lg scale-105'
+                        : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{getTabEmoji(tab.name)}</span>
+                    <span className="leading-none">{tab.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {loading && (
           <div className="text-center py-10 text-white/80">Chargement du menu…</div>

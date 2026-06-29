@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, Lock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, Lock, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -18,6 +18,9 @@ const AdminCategories = () => {
 
   const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
   const [newSubName, setNewSubName] = useState('');
+
+  const [addingMain, setAddingMain] = useState(false);
+  const [newMainName, setNewMainName] = useState('');
 
   const [saving, setSaving] = useState(false);
 
@@ -86,6 +89,25 @@ const AdminCategories = () => {
     setSaving(false);
   };
 
+  const addMainCategory = async () => {
+    const name = newMainName.trim();
+    if (!name) return;
+    setSaving(true);
+    const { data, error } = await supabase
+      .from('categories_pizzeria')
+      .insert({ name, parent_id: null, position: mainCategories.length + 1 })
+      .select()
+      .single();
+    if (error) toast.error('Erreur : ' + error.message);
+    else {
+      setCategories((prev) => [...prev, data as Category]);
+      toast.success(`Catégorie « ${name} » ajoutée — elle apparaîtra comme onglet dans le menu public.`);
+    }
+    setAddingMain(false);
+    setNewMainName('');
+    setSaving(false);
+  };
+
   const addSubcategory = async (parentId: string) => {
     const name = newSubName.trim();
     if (!name) return;
@@ -111,13 +133,13 @@ const AdminCategories = () => {
   return (
     <AdminLayout
       title="Catégories"
-      subtitle="Sous-catégories des 4 onglets fixes du menu public"
+      subtitle="Onglets du menu public et leurs sous-catégories"
     >
       {/* Info banner */}
       <div className="rounded-xl px-4 py-3 mb-4 flex items-start gap-2 bg-white/5 border border-white/10">
-        <Lock className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+        <Info className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
         <p className="text-white/50 text-xs leading-relaxed">
-          Les 4 catégories principales (Pizza, Restaurant, Bar, Boutique) correspondent aux onglets fixes du menu public — elles ne peuvent pas être modifiées. Vous pouvez gérer leurs sous-catégories librement.
+          Chaque catégorie principale correspond à un onglet dans le menu public. Les 4 de base (Pizza, Restaurant, Bar, Boutique) sont protégées. Vous pouvez en ajouter de nouvelles et gérer les sous-catégories librement.
         </p>
       </div>
 
@@ -327,6 +349,40 @@ const AdminCategories = () => {
               </div>
             );
           })}
+
+          {/* Add main category */}
+          {addingMain ? (
+            <div
+              className="rounded-2xl px-4 py-3 flex items-center gap-2"
+              style={{ background: 'linear-gradient(135deg, hsl(60,3%,7%) 0%, hsl(0,3%,19%) 100%)' }}
+            >
+              <input
+                autoFocus
+                value={newMainName}
+                onChange={(e) => setNewMainName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addMainCategory();
+                  if (e.key === 'Escape') { setAddingMain(false); setNewMainName(''); }
+                }}
+                placeholder="Nom de la catégorie (ex: Desserts)…"
+                className="bg-white/10 border border-primary/40 text-white text-sm rounded-lg px-3 py-1.5 flex-1 focus:outline-none placeholder:text-white/30"
+              />
+              <button onClick={addMainCategory} disabled={saving} className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition">
+                <Check className="w-3.5 h-3.5 text-green-400" />
+              </button>
+              <button onClick={() => { setAddingMain(false); setNewMainName(''); }} className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                <X className="w-3.5 h-3.5 text-white/60" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingMain(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-white/20 text-white/50 hover:text-white/80 hover:border-white/40 text-sm transition"
+            >
+              <Plus className="w-4 h-4" />
+              Ajouter une catégorie
+            </button>
+          )}
         </div>
       )}
     </AdminLayout>
