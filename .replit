@@ -50,3 +50,7 @@ VITE_SUPABASE_URL = "placeholder_will_be_set_from_secret"
 
 [nix]
 channel = "stable-25_05"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 60000
