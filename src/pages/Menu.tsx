@@ -19,6 +19,7 @@ const getTabEmoji = (name: string) => EMOJI_MAP[name] ?? '🍴';
 const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [tabs, setTabs] = useState<Category[]>([]);
+  const [subcatOrder, setSubcatOrder] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -26,23 +27,29 @@ const Menu = () => {
   const { addItem, updateQuantity, itemCount, items: cartItems } = useCartStore();
 
   useEffect(() => {
-    Promise.all([
-      supabase
-        .from('menu_items')
-        .select('*')
-        .order('category')
-        .order('subcategory')
-        .order('name'),
-      supabase
-        .from('categories_pizzeria')
-        .select('*')
-        .is('parent_id', null)
-        .order('position')
-        .order('name'),
-    ]).then(([menuRes, catsRes]) => {
+    const loadData = async () => {
+      const [menuRes, mainCatRes, subCatRes] = await Promise.all([
+        supabase
+          .from('menu_items')
+          .select('*')
+          .order('category')
+          .order('subcategory')
+          .order('name'),
+        supabase
+          .from('categories_pizzeria')
+          .select('*')
+          .is('parent_id', null)
+          .order('position')
+          .order('name'),
+        supabase
+          .from('categories_pizzeria')
+          .select('name, position, parent_id')
+          .not('parent_id', 'is', null)
+          .order('position'),
+      ]);
       if (menuRes.error) setError(menuRes.error.message);
       else setItems((menuRes.data as MenuItem[]) ?? []);
-      const loadedTabs = (catsRes.data as Category[]) ?? [];
+      const loadedTabs = (mainCatRes.data as Category[]) ?? [];
       setTabs(loadedTabs);
       if (loadedTabs.length > 0) {
         setActiveTab((prev) => {
@@ -50,8 +57,14 @@ const Menu = () => {
           return names.includes(prev) ? prev : loadedTabs[0].name;
         });
       }
+      if (subCatRes.data) {
+        const order: Record<string, number> = {};
+        subCatRes.data.forEach((c) => { order[c.name] = c.position; });
+        setSubcatOrder(order);
+      }
       setLoading(false);
-    });
+    };
+    loadData();
   }, []);
 
   const [activeTab, setActiveTab] = useState<string>('Pizza');
@@ -68,13 +81,19 @@ const Menu = () => {
   }, [items, activeTab, search]);
 
   const grouped = useMemo(() => {
-    return filtered.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    const acc = filtered.reduce<Record<string, MenuItem[]>>((map, item) => {
       const sub = (item.subcategory && item.subcategory.trim()) ? item.subcategory : 'Autres';
-      if (!acc[sub]) acc[sub] = [];
-      acc[sub].push(item);
-      return acc;
+      if (!map[sub]) map[sub] = [];
+      map[sub].push(item);
+      return map;
     }, {});
-  }, [filtered]);
+    const sorted = Object.entries(acc).sort(([a], [b]) => {
+      const posA = subcatOrder[a] ?? 999;
+      const posB = subcatOrder[b] ?? 999;
+      return posA - posB || a.localeCompare(b, 'fr');
+    });
+    return Object.fromEntries(sorted);
+  }, [filtered, subcatOrder]);
 
   const getCartItem = (id: string) => cartItems.find((c) => c.id === id);
   const count = itemCount();
