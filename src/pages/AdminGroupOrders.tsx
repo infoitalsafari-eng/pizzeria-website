@@ -152,7 +152,7 @@ const AdminGroupOrders = () => {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  const handlePrint = (s: ExportSummary) => {
+  const handlePrint = async (s: ExportSummary) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
@@ -304,6 +304,23 @@ const AdminGroupOrders = () => {
     );
 
     const filename = `livraison-${s.cityName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    if (navigator.share) {
+      try {
+        const pdfBlob = doc.output('blob');
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `Résumé livraison – ${s.cityName}`,
+          });
+          return;
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+      }
+    }
+
     doc.save(filename);
     toast.success('PDF téléchargé avec succès.');
   };
@@ -604,8 +621,11 @@ const AdminGroupOrders = () => {
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
                   style={{ background: 'rgba(251,191,36,0.15)', color: 'rgb(251,191,36)', border: '1px solid rgba(251,191,36,0.3)' }}
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  Télécharger PDF
+                  {navigator.share ? (
+                    <><Share2 className="w-3.5 h-3.5" />Partager</>
+                  ) : (
+                    <><Download className="w-3.5 h-3.5" />Télécharger PDF</>
+                  )}
                 </button>
               </div>
             </motion.div>
