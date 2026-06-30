@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Check, X, ToggleLeft, ToggleRight, Calendar, MapPin } from 'lucide-react';
+import { Plus, Trash2, Check, X, ToggleLeft, ToggleRight, Calendar, MapPin, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -30,6 +30,9 @@ const AdminGroupOrdersConfig = () => {
 
   const [addingSlotForCity, setAddingSlotForCity] = useState<string | null>(null);
   const [newSlotDate, setNewSlotDate] = useState('');
+
+  const [editingCityId, setEditingCityId] = useState<string | null>(null);
+  const [editingCityName, setEditingCityName] = useState('');
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -70,6 +73,21 @@ const AdminGroupOrdersConfig = () => {
       .from('group_order_cities').update({ active: !city.active }).eq('id', city.id);
     if (error) toast.error('Erreur : ' + error.message);
     else setCities((prev) => prev.map((c) => c.id === city.id ? { ...c, active: !c.active } : c));
+    setSaving(false);
+  };
+
+  const renameCity = async (city: City) => {
+    const name = editingCityName.trim();
+    if (!name) { toast.error('Le nom ne peut pas être vide.'); return; }
+    if (name === city.name) { setEditingCityId(null); return; }
+    setSaving(true);
+    const { error } = await supabase.from('group_order_cities').update({ name }).eq('id', city.id);
+    if (error) toast.error('Erreur : ' + error.message);
+    else {
+      setCities((prev) => prev.map((c) => c.id === city.id ? { ...c, name } : c));
+      toast.success('Ville renommée');
+      setEditingCityId(null);
+    }
     setSaving(false);
   };
 
@@ -157,39 +175,77 @@ const AdminGroupOrdersConfig = () => {
                 {/* City header */}
                 <div className="flex items-center gap-2 px-4 py-3">
                   <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span className={`text-sm font-semibold flex-1 ${city.active ? 'text-white' : 'text-white/40'}`}>
-                    {city.name}
-                    <span className="ml-2 text-[10px] font-normal text-white/30">
-                      ({citySlots.length} créneau{citySlots.length !== 1 ? 'x' : ''})
-                    </span>
-                  </span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => toggleCity(city)}
-                      disabled={saving}
-                      className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
-                      title={city.active ? 'Désactiver' : 'Activer'}
-                    >
-                      {city.active
-                        ? <ToggleRight className="w-4 h-4 text-amber-400" />
-                        : <ToggleLeft className="w-4 h-4 text-white/40" />}
-                    </button>
-                    <button
-                      onClick={() => { setAddingSlotForCity(city.id); }}
-                      className="w-7 h-7 rounded-lg bg-amber-400/20 hover:bg-amber-400/40 flex items-center justify-center transition"
-                      title="Ajouter un créneau"
-                    >
-                      <Plus className="w-3 h-3 text-amber-400" />
-                    </button>
-                    <button
-                      onClick={() => deleteCity(city)}
-                      disabled={saving}
-                      className="w-7 h-7 rounded-lg bg-red-500/20 hover:bg-red-500/40 flex items-center justify-center transition"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-400" />
-                    </button>
-                  </div>
+                  {editingCityId === city.id ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={editingCityName}
+                        onChange={(e) => setEditingCityName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') renameCity(city); if (e.key === 'Escape') setEditingCityId(null); }}
+                        className="flex-1 text-sm font-semibold bg-white/10 border border-amber-400/40 rounded-lg px-2 py-0.5 text-white outline-none focus:border-amber-400"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => renameCity(city)}
+                          disabled={saving}
+                          className="w-7 h-7 rounded-lg bg-amber-400/20 hover:bg-amber-400/40 flex items-center justify-center transition"
+                          title="Enregistrer"
+                        >
+                          <Check className="w-3.5 h-3.5 text-amber-400" />
+                        </button>
+                        <button
+                          onClick={() => setEditingCityId(null)}
+                          className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                          title="Annuler"
+                        >
+                          <X className="w-3.5 h-3.5 text-white/50" />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`text-sm font-semibold flex-1 ${city.active ? 'text-white' : 'text-white/40'}`}>
+                        {city.name}
+                        <span className="ml-2 text-[10px] font-normal text-white/30">
+                          ({citySlots.length} créneau{citySlots.length !== 1 ? 'x' : ''})
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => { setEditingCityId(city.id); setEditingCityName(city.name); }}
+                          className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                          title="Renommer"
+                        >
+                          <Pencil className="w-3 h-3 text-white/50" />
+                        </button>
+                        <button
+                          onClick={() => toggleCity(city)}
+                          disabled={saving}
+                          className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                          title={city.active ? 'Désactiver' : 'Activer'}
+                        >
+                          {city.active
+                            ? <ToggleRight className="w-4 h-4 text-amber-400" />
+                            : <ToggleLeft className="w-4 h-4 text-white/40" />}
+                        </button>
+                        <button
+                          onClick={() => { setAddingSlotForCity(city.id); }}
+                          className="w-7 h-7 rounded-lg bg-amber-400/20 hover:bg-amber-400/40 flex items-center justify-center transition"
+                          title="Ajouter un créneau"
+                        >
+                          <Plus className="w-3 h-3 text-amber-400" />
+                        </button>
+                        <button
+                          onClick={() => deleteCity(city)}
+                          disabled={saving}
+                          className="w-7 h-7 rounded-lg bg-red-500/20 hover:bg-red-500/40 flex items-center justify-center transition"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-400" />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Slots */}
