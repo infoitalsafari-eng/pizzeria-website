@@ -215,7 +215,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl max-h-[92vh] flex flex-col border-none p-0 outline-none"
+        className="rounded-t-3xl h-[92vh] flex flex-col border-none p-0 outline-none overflow-hidden"
         style={{ background: 'linear-gradient(160deg, hsl(60,3%,9%) 0%, hsl(0,3%,14%) 100%)' }}
       >
         {/* Header */}
