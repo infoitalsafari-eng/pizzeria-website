@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X } from 'lucide-react';
+import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -149,6 +149,105 @@ const AdminGroupOrders = () => {
   const handleWhatsApp = (s: ExportSummary) => {
     const text = encodeURIComponent(formatSummaryText(s));
     window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const escapeHtml = (str: string): string =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const handlePrint = (s: ExportSummary) => {
+    const itemRows = s.items
+      .map(
+        (item) =>
+          `<tr>
+            <td>${escapeHtml(item.emoji)} ${escapeHtml(item.name)}</td>
+            <td class="center">× ${item.qty}</td>
+            <td class="right">${item.total.toLocaleString('fr-FR')} FCFA</td>
+          </tr>`,
+      )
+      .join('');
+
+    const clientRows = s.clients
+      .map(
+        (c) =>
+          `<tr>
+            <td>${escapeHtml(c.name)}</td>
+            <td>${escapeHtml(c.phone)}</td>
+            <td class="right">${c.orderTotal.toLocaleString('fr-FR')} FCFA</td>
+          </tr>`,
+      )
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Résumé livraison — ${escapeHtml(s.cityName)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 32px 40px; font-size: 13px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .meta { color: #555; font-size: 12px; margin-bottom: 24px; }
+    .badge { display: inline-block; background: #f5a623; color: #fff; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; margin-right: 8px; }
+    h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #555; margin-bottom: 8px; margin-top: 20px; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .total-row { font-weight: 700; font-size: 14px; border-top: 2px solid #1a1a1a !important; }
+    .total-row td { padding-top: 10px; border-bottom: none; }
+    .footer { margin-top: 32px; font-size: 11px; color: #aaa; text-align: center; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <h1>📦 Résumé livraison groupée</h1>
+  <p class="meta">
+    <span class="badge">${escapeHtml(s.cityName)}</span>
+    ${escapeHtml(s.dateLabel)} &nbsp;·&nbsp; ${s.orderCount} commande${s.orderCount > 1 ? 's' : ''}
+  </p>
+
+  <h2>Articles consolidés</h2>
+  <table>
+    <thead>
+      <tr>
+        <td><strong>Article</strong></td>
+        <td class="center"><strong>Qté</strong></td>
+        <td class="right"><strong>Sous-total</strong></td>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+    <tbody>
+      <tr class="total-row">
+        <td colspan="2">Total général</td>
+        <td class="right">${s.grandTotal.toLocaleString('fr-FR')} FCFA</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Clients</h2>
+  <table>
+    <thead>
+      <tr>
+        <td><strong>Nom</strong></td>
+        <td><strong>Téléphone</strong></td>
+        <td class="right"><strong>Montant</strong></td>
+      </tr>
+    </thead>
+    <tbody>${clientRows}</tbody>
+  </table>
+
+  <p class="footer">Généré le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'noopener,noreferrer');
+    if (!win) { toast.error('Autorisez les pop-ups pour imprimer.'); return; }
+    win.opener = null;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
   };
 
   const getCityName = (slotId: string) => {
@@ -441,6 +540,14 @@ const AdminGroupOrders = () => {
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   WhatsApp
+                </button>
+                <button
+                  onClick={() => handlePrint(exportSummary)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
+                  style={{ background: 'rgba(251,191,36,0.15)', color: 'rgb(251,191,36)', border: '1px solid rgba(251,191,36,0.3)' }}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Télécharger PDF
                 </button>
               </div>
             </motion.div>
