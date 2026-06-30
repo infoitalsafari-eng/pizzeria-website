@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Ktodusw6UfL_UsgobCsQR"
+uri = "file://docs/documentation-technique.docx"
+type = "word_document"
+title = "Documentation Technique — Architecture, API, Base de données"
+
+[[outputs]]
+id = "dIW1m1i5iSy1GWMQF-h9V"
+uri = "file://docs/guide-utilisateur.docx"
+type = "word_document"
+title = "Guide Utilisateur — Interface publique & Administration"
