@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X, Download } from 'lucide-react';
+import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
@@ -150,6 +150,116 @@ const AdminGroupOrders = () => {
   const handleWhatsApp = (s: ExportSummary) => {
     const text = encodeURIComponent(formatSummaryText(s));
     window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const escHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const handleDirectPrint = (s: ExportSummary) => {
+    const win = window.open('', '_blank', 'noopener,noreferrer');
+    if (!win) {
+      toast.error('Impossible d\'ouvrir la fenêtre d\'impression. Vérifiez les pop-ups.');
+      return;
+    }
+
+    const doc = win.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>');
+    doc.write(escHtml(`Résumé livraison – ${s.cityName}`));
+    doc.write('</title><style>');
+    doc.write('* { box-sizing: border-box; margin: 0; padding: 0; }');
+    doc.write('body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 28px 36px; }');
+    doc.write('h1 { font-size: 20px; margin-bottom: 4px; }');
+    doc.write('.meta { color: #666; font-size: 12px; margin-bottom: 20px; }');
+    doc.write('h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #888; margin-bottom: 6px; margin-top: 20px; }');
+    doc.write('table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }');
+    doc.write('th { text-align: left; font-size: 11px; color: #555; border-bottom: 1px solid #ccc; padding: 4px 0; }');
+    doc.write('td { padding: 4px 0; font-size: 12px; border-bottom: 1px solid #eee; vertical-align: top; }');
+    doc.write('.right { text-align: right; }');
+    doc.write('.total-row td { font-weight: bold; border-top: 2px solid #111; border-bottom: none; padding-top: 8px; font-size: 13px; }');
+    doc.write('.footer { margin-top: 28px; font-size: 10px; color: #aaa; text-align: center; }');
+    doc.write('@media print { body { padding: 0; } }');
+    doc.write('</style></head><body>');
+
+    const h1 = doc.createElement('h1');
+    h1.textContent = 'Résumé livraison groupée';
+    doc.body.appendChild(h1);
+
+    const meta = doc.createElement('p');
+    meta.className = 'meta';
+    meta.textContent = `${s.cityName} — ${s.dateLabel} — ${s.orderCount} commande${s.orderCount > 1 ? 's' : ''}`;
+    doc.body.appendChild(meta);
+
+    const h2items = doc.createElement('h2');
+    h2items.textContent = 'Articles consolidés';
+    doc.body.appendChild(h2items);
+
+    const itemsTable = doc.createElement('table');
+    itemsTable.innerHTML = '<thead><tr><th>Article</th><th class="right">Qté</th><th class="right">Sous-total</th></tr></thead>';
+    const itemsTbody = doc.createElement('tbody');
+    for (const item of s.items) {
+      const tr = doc.createElement('tr');
+      const tdName = doc.createElement('td');
+      tdName.textContent = `${item.emoji} ${item.name}`;
+      const tdQty = doc.createElement('td');
+      tdQty.className = 'right';
+      tdQty.textContent = `× ${item.qty}`;
+      const tdTotal = doc.createElement('td');
+      tdTotal.className = 'right';
+      tdTotal.textContent = `${item.total.toLocaleString('fr-FR')} FCFA`;
+      tr.appendChild(tdName);
+      tr.appendChild(tdQty);
+      tr.appendChild(tdTotal);
+      itemsTbody.appendChild(tr);
+    }
+    itemsTable.appendChild(itemsTbody);
+    const itemsTfoot = doc.createElement('tfoot');
+    const totalTr = doc.createElement('tr');
+    totalTr.className = 'total-row';
+    const tdTotalLabel = doc.createElement('td');
+    tdTotalLabel.textContent = 'Total général';
+    const tdTotalEmpty = doc.createElement('td');
+    const tdTotalVal = doc.createElement('td');
+    tdTotalVal.className = 'right';
+    tdTotalVal.textContent = `${s.grandTotal.toLocaleString('fr-FR')} FCFA`;
+    totalTr.appendChild(tdTotalLabel);
+    totalTr.appendChild(tdTotalEmpty);
+    totalTr.appendChild(tdTotalVal);
+    itemsTfoot.appendChild(totalTr);
+    itemsTable.appendChild(itemsTfoot);
+    doc.body.appendChild(itemsTable);
+
+    const h2clients = doc.createElement('h2');
+    h2clients.textContent = 'Clients';
+    doc.body.appendChild(h2clients);
+
+    const clientsTable = doc.createElement('table');
+    clientsTable.innerHTML = '<thead><tr><th>Nom</th><th>Téléphone</th><th class="right">Montant</th></tr></thead>';
+    const clientsTbody = doc.createElement('tbody');
+    for (const c of s.clients) {
+      const tr = doc.createElement('tr');
+      const tdName = doc.createElement('td');
+      tdName.textContent = c.name;
+      const tdPhone = doc.createElement('td');
+      tdPhone.textContent = c.phone;
+      const tdAmt = doc.createElement('td');
+      tdAmt.className = 'right';
+      tdAmt.textContent = `${c.orderTotal.toLocaleString('fr-FR')} FCFA`;
+      tr.appendChild(tdName);
+      tr.appendChild(tdPhone);
+      tr.appendChild(tdAmt);
+      clientsTbody.appendChild(tr);
+    }
+    clientsTable.appendChild(clientsTbody);
+    doc.body.appendChild(clientsTable);
+
+    const footer = doc.createElement('p');
+    footer.className = 'footer';
+    footer.textContent = `Généré le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    doc.body.appendChild(footer);
+
+    doc.close();
+    win.print();
   };
 
   const handlePrint = async (s: ExportSummary) => {
@@ -615,6 +725,14 @@ const AdminGroupOrders = () => {
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   WhatsApp
+                </button>
+                <button
+                  onClick={() => handleDirectPrint(exportSummary)}
+                  className="flex-1 hidden sm:flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
+                  style={{ background: 'rgba(139,92,246,0.15)', color: 'rgb(167,139,250)', border: '1px solid rgba(139,92,246,0.35)' }}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Imprimer
                 </button>
                 <button
                   onClick={() => handlePrint(exportSummary)}
