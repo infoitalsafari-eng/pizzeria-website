@@ -22,6 +22,7 @@ const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [tabs, setTabs] = useState<Category[]>([]);
   const [subcatOrder, setSubcatOrder] = useState<Record<string, number>>({});
+  const [inactiveSubcats, setInactiveSubcats] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -42,11 +43,12 @@ const Menu = () => {
           .from('categories_pizzeria')
           .select('*')
           .is('parent_id', null)
+          .eq('is_active', true)
           .order('position')
           .order('name'),
         supabase
           .from('categories_pizzeria')
-          .select('name, position, parent_id')
+          .select('name, position, parent_id, is_active')
           .not('parent_id', 'is', null)
           .order('position'),
       ]);
@@ -62,8 +64,13 @@ const Menu = () => {
       }
       if (subCatRes.data) {
         const order: Record<string, number> = {};
-        subCatRes.data.forEach((c) => { order[c.name] = c.position; });
+        const inactive = new Set<string>();
+        subCatRes.data.forEach((c) => {
+          order[c.name] = c.position;
+          if (c.is_active === false) inactive.add(c.name);
+        });
         setSubcatOrder(order);
+        setInactiveSubcats(inactive);
       }
       setLoading(false);
     };
@@ -78,10 +85,11 @@ const Menu = () => {
     return items.filter((i) => {
       if (i.available === false) return false;
       if ((i.category ?? '') !== activeTab) return false;
+      if (i.subcategory && inactiveSubcats.has(i.subcategory)) return false;
       if (q && !(i.name ?? '').toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [items, activeTab, search]);
+  }, [items, activeTab, search, inactiveSubcats]);
 
   const grouped = useMemo(() => {
     const acc = filtered.reduce<Record<string, MenuItem[]>>((map, item) => {

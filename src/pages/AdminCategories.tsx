@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, Lock, Info } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, Lock, Info, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -78,6 +78,19 @@ const AdminCategories = () => {
     setSaving(false);
   };
 
+  const toggleActive = async (cat: Category) => {
+    const next = !cat.is_active;
+    const { error } = await supabase
+      .from('categories_pizzeria')
+      .update({ is_active: next })
+      .eq('id', cat.id);
+    if (error) { toast.error('Erreur : ' + error.message); return; }
+    setCategories((prev) =>
+      prev.map((c) => c.id === cat.id ? { ...c, is_active: next } : c)
+    );
+    toast.success(next ? 'Activée' : 'Désactivée');
+  };
+
   const deleteCategory = async (cat: Category) => {
     const subs = getSubcategories(cat.id);
     if (subs.length > 0) {
@@ -104,7 +117,7 @@ const AdminCategories = () => {
     const emoji = newMainEmoji.trim() || null;
     const { data, error } = await supabase
       .from('categories_pizzeria')
-      .insert({ name, emoji, parent_id: null, position: mainCategories.length + 1 })
+      .insert({ name, emoji, parent_id: null, position: mainCategories.length + 1, is_active: true })
       .select()
       .single();
     if (error) toast.error('Erreur : ' + error.message);
@@ -126,7 +139,7 @@ const AdminCategories = () => {
     const siblings = getSubcategories(parentId);
     const { data, error } = await supabase
       .from('categories_pizzeria')
-      .insert({ name, parent_id: parentId, position: siblings.length + 1 })
+      .insert({ name, parent_id: parentId, position: siblings.length + 1, is_active: true })
       .select()
       .single();
     if (error) toast.error('Erreur : ' + error.message);
@@ -149,7 +162,7 @@ const AdminCategories = () => {
       <div className="rounded-xl px-4 py-3 mb-4 flex items-start gap-2 bg-white/5 border border-white/10">
         <Info className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
         <p className="text-white/50 text-xs leading-relaxed">
-          Chaque catégorie principale correspond à un onglet dans le menu public. Les 4 de base (Pizza, Restaurant, Bar, Boutique) sont protégées. Vous pouvez en ajouter de nouvelles et gérer les sous-catégories librement.
+          Chaque catégorie principale correspond à un onglet dans le menu public. Les 4 de base (Pizza, Restaurant, Bar, Boutique) sont protégées. Vous pouvez activer/désactiver n'importe quelle catégorie ou sous-catégorie pour la masquer du menu public sans la supprimer.
         </p>
       </div>
 
@@ -165,12 +178,16 @@ const AdminCategories = () => {
             const subs = getSubcategories(main.id);
             const isOpen = expanded[main.id];
             const isFixed = (FIXED_MAINS as readonly string[]).includes(main.name);
+            const isActive = main.is_active;
 
             return (
               <div
                 key={main.id}
-                className="rounded-2xl overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, hsl(60,3%,7%) 0%, hsl(0,3%,19%) 100%)' }}
+                className="rounded-2xl overflow-hidden transition-opacity"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(60,3%,7%) 0%, hsl(0,3%,19%) 100%)',
+                  opacity: isActive ? 1 : 0.55,
+                }}
               >
                 {/* Main category row */}
                 <div className="flex items-center gap-2 px-4 py-3">
@@ -184,10 +201,16 @@ const AdminCategories = () => {
                       : <ChevronRight className="w-4 h-4 text-white/50 shrink-0" />
                     }
                     <span className="text-white font-semibold text-sm">
+                      {main.emoji && <span className="mr-1">{main.emoji}</span>}
                       {main.name}
                       {isFixed && (
                         <span className="ml-2 text-[10px] text-white/30 font-normal bg-white/5 px-1.5 py-0.5 rounded">
                           fixe
+                        </span>
+                      )}
+                      {!isActive && (
+                        <span className="ml-2 text-[10px] text-orange-400/80 font-normal bg-orange-500/10 px-1.5 py-0.5 rounded">
+                          masquée
                         </span>
                       )}
                       <span className="ml-2 text-white/40 text-xs font-normal">
@@ -197,6 +220,22 @@ const AdminCategories = () => {
                   </button>
 
                   <div className="flex items-center gap-1 shrink-0">
+                    {/* Toggle active/inactive — always visible */}
+                    <button
+                      onClick={() => toggleActive(main)}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition ${
+                        isActive
+                          ? 'bg-white/10 hover:bg-orange-500/20'
+                          : 'bg-orange-500/20 hover:bg-orange-500/30'
+                      }`}
+                      title={isActive ? 'Désactiver (masquer du menu)' : 'Réactiver'}
+                    >
+                      {isActive
+                        ? <Eye className="w-3 h-3 text-white/60" />
+                        : <EyeOff className="w-3 h-3 text-orange-400" />
+                      }
+                    </button>
+
                     {isFixed ? (
                       /* Fixed main: only allow adding subcategories */
                       <button
@@ -254,7 +293,7 @@ const AdminCategories = () => {
                   </div>
                 </div>
 
-                {/* Inline edit row for non-fixed mains (shown in the header area) */}
+                {/* Inline edit row for non-fixed mains */}
                 {editingId === main.id && !isFixed && (
                   <div className="px-4 pb-3 -mt-1 flex gap-2">
                     <input
@@ -298,9 +337,14 @@ const AdminCategories = () => {
 
                         {subs.map((sub) => {
                           const isEditingSub = editingId === sub.id;
+                          const subActive = sub.is_active;
                           return (
-                            <div key={sub.id} className="flex items-center gap-2 pl-4">
-                              <span className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                            <div
+                              key={sub.id}
+                              className="flex items-center gap-2 pl-4 transition-opacity"
+                              style={{ opacity: subActive ? 1 : 0.5 }}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? 'bg-white/20' : 'bg-orange-400/50'}`} />
                               {isEditingSub ? (
                                 <input
                                   autoFocus
@@ -313,9 +357,33 @@ const AdminCategories = () => {
                                   className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-2 py-1 flex-1 focus:outline-none"
                                 />
                               ) : (
-                                <span className="text-white/80 text-sm flex-1">{sub.name}</span>
+                                <span className="text-white/80 text-sm flex-1">
+                                  {sub.name}
+                                  {!subActive && (
+                                    <span className="ml-2 text-[10px] text-orange-400/80 bg-orange-500/10 px-1.5 py-0.5 rounded">
+                                      masquée
+                                    </span>
+                                  )}
+                                </span>
                               )}
                               <div className="flex items-center gap-1 shrink-0">
+                                {/* Toggle sub active */}
+                                {!isEditingSub && (
+                                  <button
+                                    onClick={() => toggleActive(sub)}
+                                    className={`w-6 h-6 rounded-lg flex items-center justify-center transition ${
+                                      subActive
+                                        ? 'bg-white/10 hover:bg-orange-500/20'
+                                        : 'bg-orange-500/20 hover:bg-orange-500/30'
+                                    }`}
+                                    title={subActive ? 'Désactiver' : 'Réactiver'}
+                                  >
+                                    {subActive
+                                      ? <Eye className="w-3 h-3 text-white/50" />
+                                      : <EyeOff className="w-3 h-3 text-orange-400" />
+                                    }
+                                  </button>
+                                )}
                                 {isEditingSub ? (
                                   <>
                                     <button onClick={() => saveEdit(sub.id)} disabled={saving} className="w-6 h-6 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition">

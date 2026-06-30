@@ -258,8 +258,10 @@ const AdminGroupOrders = () => {
     footer.textContent = `Généré le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     doc.body.appendChild(footer);
 
+    const printScript = doc.createElement('script');
+    printScript.textContent = 'window.onload = function() { window.print(); };';
+    doc.head.appendChild(printScript);
     doc.close();
-    win.print();
   };
 
   const handlePrint = async (s: ExportSummary) => {
