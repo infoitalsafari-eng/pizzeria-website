@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -39,6 +39,15 @@ interface GroupOrder {
 
 type TabView = 'pending' | 'delivered';
 
+interface ExportSummary {
+  cityName: string;
+  dateLabel: string;
+  items: { emoji: string; name: string; qty: number; total: number }[];
+  clients: { name: string; phone: string; orderTotal: number }[];
+  grandTotal: number;
+  orderCount: number;
+}
+
 const AdminGroupOrders = () => {
   const [orders, setOrders] = useState<GroupOrder[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -46,6 +55,7 @@ const AdminGroupOrders = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabView>('pending');
   const [delivering, setDelivering] = useState<string | null>(null);
+  const [exportSummary, setExportSummary] = useState<ExportSummary | null>(null);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -81,6 +91,64 @@ const AdminGroupOrders = () => {
       toast.success('Livraison validée ✅');
     }
     setDelivering(null);
+  };
+
+  const buildGroupSummary = (groupOrders: GroupOrder[], cityName: string, dateStr: string): ExportSummary => {
+    const itemMap: Record<string, { emoji: string; name: string; qty: number; total: number }> = {};
+    for (const order of groupOrders) {
+      for (const item of order.items as GroupOrderItem[]) {
+        if (!itemMap[item.name]) {
+          itemMap[item.name] = { emoji: item.emoji, name: item.name, qty: 0, total: 0 };
+        }
+        itemMap[item.name].qty += item.quantity;
+        itemMap[item.name].total += item.price * item.quantity;
+      }
+    }
+    const dateLabel = dateStr !== '?'
+      ? new Date(dateStr + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      : '–';
+    return {
+      cityName,
+      dateLabel,
+      items: Object.values(itemMap).sort((a, b) => b.qty - a.qty),
+      clients: groupOrders.map((o) => ({ name: o.client_name, phone: o.client_phone, orderTotal: Number(o.total) })),
+      grandTotal: groupOrders.reduce((s, o) => s + Number(o.total), 0),
+      orderCount: groupOrders.length,
+    };
+  };
+
+  const formatSummaryText = (s: ExportSummary): string => {
+    const lines: string[] = [];
+    lines.push(`📦 Résumé livraison groupée`);
+    lines.push(`📍 ${s.cityName} — ${s.dateLabel}`);
+    lines.push(`👥 ${s.orderCount} commande${s.orderCount > 1 ? 's' : ''}`);
+    lines.push('');
+    lines.push('🛒 Articles consolidés :');
+    for (const item of s.items) {
+      lines.push(`  ${item.emoji} ${item.name} × ${item.qty}  →  ${item.total.toLocaleString('fr-FR')} FCFA`);
+    }
+    lines.push('');
+    lines.push('👤 Clients :');
+    for (const c of s.clients) {
+      lines.push(`  • ${c.name} (${c.phone}) — ${c.orderTotal.toLocaleString('fr-FR')} FCFA`);
+    }
+    lines.push('');
+    lines.push(`💰 Total : ${s.grandTotal.toLocaleString('fr-FR')} FCFA`);
+    return lines.join('\n');
+  };
+
+  const handleCopy = async (s: ExportSummary) => {
+    try {
+      await navigator.clipboard.writeText(formatSummaryText(s));
+      toast.success('Résumé copié dans le presse-papiers ✅');
+    } catch {
+      toast.error('Impossible de copier.');
+    }
+  };
+
+  const handleWhatsApp = (s: ExportSummary) => {
+    const text = encodeURIComponent(formatSummaryText(s));
+    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const getCityName = (slotId: string) => {
@@ -210,6 +278,14 @@ const AdminGroupOrders = () => {
                     {groupTotal.toLocaleString('fr-FR')} FCFA
                   </span>
                   <span className="text-white/30 text-xs">({groupOrders.length} cmd)</span>
+                  <button
+                    onClick={() => setExportSummary(buildGroupSummary(groupOrders, cityName, dateStr))}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 text-amber-400 text-[11px] font-semibold transition"
+                    title="Exporter le résumé par groupe"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    Exporter
+                  </button>
                 </div>
 
                 {/* Orders in this group */}
@@ -278,6 +354,99 @@ const AdminGroupOrders = () => {
           })}
         </div>
       )}
+      {/* Export summary modal */}
+      <AnimatePresence>
+        {exportSummary && (
+          <motion.div
+            key="export-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setExportSummary(null)}
+          >
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+              className="w-full max-w-sm rounded-2xl overflow-hidden"
+              style={{ background: 'hsl(0,3%,12%)', border: '1px solid rgba(255,255,255,0.1)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
+                <div>
+                  <p className="text-white font-bold text-sm">Résumé du groupe</p>
+                  <p className="text-white/50 text-xs">{exportSummary.cityName} · {exportSummary.dateLabel}</p>
+                </div>
+                <button
+                  onClick={() => setExportSummary(null)}
+                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                >
+                  <X className="w-3.5 h-3.5 text-white/60" />
+                </button>
+              </div>
+
+              {/* Consolidated items */}
+              <div className="px-4 py-3 border-b border-white/[0.08]">
+                <p className="text-white/50 text-[11px] font-semibold uppercase tracking-wider mb-2">
+                  Articles consolidés ({exportSummary.orderCount} cmd)
+                </p>
+                <div className="space-y-1.5">
+                  {exportSummary.items.map((item) => (
+                    <div key={item.name} className="flex items-center gap-2">
+                      <span className="text-sm shrink-0">{item.emoji}</span>
+                      <span className="text-white text-xs flex-1">{item.name}</span>
+                      <span className="text-amber-400 font-bold text-xs shrink-0">× {item.qty}</span>
+                      <span className="text-white/40 text-xs shrink-0 ml-1">{item.total.toLocaleString('fr-FR')} F</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex justify-between">
+                  <span className="text-white/50 text-xs">Total</span>
+                  <span className="text-amber-400 font-bold text-sm">{exportSummary.grandTotal.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              </div>
+
+              {/* Client list */}
+              <div className="px-4 py-3 border-b border-white/[0.08]">
+                <p className="text-white/50 text-[11px] font-semibold uppercase tracking-wider mb-2">Clients</p>
+                <div className="space-y-1">
+                  {exportSummary.clients.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-white text-xs flex-1 truncate">{c.name}</span>
+                      <span className="text-white/40 text-xs shrink-0">{c.phone}</span>
+                      <span className="text-white/60 text-xs shrink-0 ml-1">{c.orderTotal.toLocaleString('fr-FR')} F</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 p-3">
+                <button
+                  onClick={() => handleCopy(exportSummary)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
+                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' }}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copier
+                </button>
+                <button
+                  onClick={() => handleWhatsApp(exportSummary)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
+                  style={{ background: 'rgba(37,211,102,0.18)', color: 'rgb(37,211,102)', border: '1px solid rgba(37,211,102,0.3)' }}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  WhatsApp
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
   );
 };
