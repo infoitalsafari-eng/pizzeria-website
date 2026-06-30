@@ -257,7 +257,7 @@ const AdminGroupOrders = () => {
     y += 4;
 
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...accent[0], accent[1], accent[2]);
+    doc.setTextColor(...accent);
     doc.setFontSize(9);
     doc.text('Total general', colArticle, y);
     doc.text(`${s.grandTotal.toLocaleString('fr-FR')} FCFA`, colTotal, y, { align: 'right' });
