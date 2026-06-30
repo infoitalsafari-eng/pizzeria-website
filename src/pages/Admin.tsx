@@ -34,6 +34,7 @@ const Admin = () => {
   const [menuCount, setMenuCount] = useState<number | null>(null);
   const [heuresCount, setHeuresCount] = useState<number | null>(null);
   const [activeOrdersCount, setActiveOrdersCount] = useState<number | null>(null);
+  const [groupOrdersCount, setGroupOrdersCount] = useState<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,17 +54,22 @@ const Admin = () => {
   }, [navigate]);
 
   const loadCounts = async () => {
-    const [menuRes, heuresRes, ordersRes] = await Promise.all([
+    const [menuRes, heuresRes, ordersRes, groupOrdersRes] = await Promise.all([
       supabase.from('menu_items').select('*', { count: 'exact', head: true }),
       supabase.from('heures_pizzeria').select('*', { count: 'exact', head: true }),
       supabase
         .from('orders_pizzeria')
         .select('id', { count: 'exact', head: true })
         .not('status', 'in', '("delivered","cancelled")'),
+      supabase
+        .from('group_orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending'),
     ]);
     setMenuCount(menuRes.count ?? 0);
     setHeuresCount(heuresRes.count ?? 0);
     setActiveOrdersCount(ordersRes.count ?? 0);
+    setGroupOrdersCount(groupOrdersRes.count ?? 0);
   };
 
   const handleLogout = async () => {
@@ -166,8 +172,8 @@ const Admin = () => {
           <Link to="/admin/group-orders" className="block">
             <StatCard
               icon={<Truck className="w-5 h-5 text-white" />}
-              label="Commandes groupées Boutique"
-              count="→"
+              label="Commandes groupées en attente"
+              count={groupOrdersCount === null ? '…' : groupOrdersCount}
               color="bg-amber-600/60"
               delay={0.36}
             />
