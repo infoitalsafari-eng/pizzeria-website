@@ -128,8 +128,12 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
   };
 
   const validateSlot = () => {
+    if (!selectedCityId) {
+      setErrors({ slot: 'Choisissez une ville de livraison' });
+      return false;
+    }
     if (!selectedSlotId) {
-      setErrors({ slot: 'Choisissez une ville et une date de livraison' });
+      setErrors({ slot: 'Choisissez une date de livraison pour cette ville' });
       return false;
     }
     setErrors({});
@@ -473,7 +477,8 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
                 <div className="px-5 pb-6 pt-3 border-t border-white/10 shrink-0">
                   <button
                     onClick={() => { if (validateSlot()) goTo('summary', 1); }}
-                    className="w-full py-3.5 rounded-2xl font-bold text-neutral-900 flex items-center justify-center gap-2 transition"
+                    disabled={!selectedSlotId}
+                    className="w-full py-3.5 rounded-2xl font-bold text-neutral-900 flex items-center justify-center gap-2 transition disabled:opacity-40"
                     style={{ background: 'linear-gradient(135deg,hsl(43,96%,56%) 0%,hsl(35,96%,50%) 100%)' }}
                   >
                     Voir le récapitulatif
