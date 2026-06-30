@@ -160,22 +160,29 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
     return lines.join('\n');
   };
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
     setSending(true);
-    try {
-      await supabase.from('group_orders').insert({
-        slot_id: selectedSlotId,
-        client_name: clientName,
-        client_phone: clientPhone,
-        items: selectedItems.map((i) => ({
-          id: i.id, name: i.name, price: i.price, quantity: i.quantity, emoji: i.emoji,
-        })),
-        total,
-        status: 'pending',
-      });
-    } catch (_) {
-      /* silent — WhatsApp opens anyway */
+    setSubmitError(null);
+
+    const { error: insertError } = await supabase.from('group_orders').insert({
+      slot_id: selectedSlotId,
+      client_name: clientName,
+      client_phone: clientPhone,
+      items: selectedItems.map((i) => ({
+        id: i.id, name: i.name, price: i.price, quantity: i.quantity, emoji: i.emoji,
+      })),
+      total,
+      status: 'pending',
+    });
+
+    if (insertError) {
+      setSubmitError('Erreur lors de l\'enregistrement. Vérifiez votre connexion et réessayez.');
+      setSending(false);
+      return;
     }
+
     const msg = encodeURIComponent(buildMessage());
     const num = whatsappNumber.replace(/\D/g, '');
     window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
@@ -493,8 +500,13 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
                     </div>
                   </div>
 
+                  {submitError && (
+                    <p className="text-red-400 text-xs text-center px-2 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
+                      {submitError}
+                    </p>
+                  )}
                   <p className="text-white/40 text-xs text-center px-4">
-                    En confirmant, un message WhatsApp sera envoyé à la pizzeria avec votre commande groupée.
+                    En confirmant, votre commande est enregistrée puis transmise via WhatsApp.
                   </p>
                 </div>
                 <div className="px-5 pb-6 pt-3 border-t border-white/10 space-y-2.5 shrink-0">
