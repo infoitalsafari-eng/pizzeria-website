@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X, Printer } from 'lucide-react';
+import { CheckCircle2, MapPin, Calendar, Phone, User, Package, History, RefreshCw, Share2, Copy, MessageCircle, X, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Link } from 'react-router-dom';
@@ -151,103 +152,160 @@ const AdminGroupOrders = () => {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  const escapeHtml = (str: string): string =>
-    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
   const handlePrint = (s: ExportSummary) => {
-    const itemRows = s.items
-      .map(
-        (item) =>
-          `<tr>
-            <td>${escapeHtml(item.emoji)} ${escapeHtml(item.name)}</td>
-            <td class="center">× ${item.qty}</td>
-            <td class="right">${item.total.toLocaleString('fr-FR')} FCFA</td>
-          </tr>`,
-      )
-      .join('');
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const bottomMargin = 18;
+    const maxY = pageH - bottomMargin;
+    const usableW = pageW - margin * 2;
+    let y = 16;
 
-    const clientRows = s.clients
-      .map(
-        (c) =>
-          `<tr>
-            <td>${escapeHtml(c.name)}</td>
-            <td>${escapeHtml(c.phone)}</td>
-            <td class="right">${c.orderTotal.toLocaleString('fr-FR')} FCFA</td>
-          </tr>`,
-      )
-      .join('');
+    const accent: [number, number, number] = [245, 166, 35];
+    const dark: [number, number, number] = [26, 26, 26];
+    const muted: [number, number, number] = [100, 100, 100];
+    const light: [number, number, number] = [240, 240, 240];
 
-    const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Résumé livraison — ${escapeHtml(s.cityName)}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 32px 40px; font-size: 13px; }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-    .meta { color: #555; font-size: 12px; margin-bottom: 24px; }
-    .badge { display: inline-block; background: #f5a623; color: #fff; border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; margin-right: 8px; }
-    h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #555; margin-bottom: 8px; margin-top: 20px; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-    td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    .center { text-align: center; }
-    .right { text-align: right; }
-    .total-row { font-weight: 700; font-size: 14px; border-top: 2px solid #1a1a1a !important; }
-    .total-row td { padding-top: 10px; border-bottom: none; }
-    .footer { margin-top: 32px; font-size: 11px; color: #aaa; text-align: center; }
-    @media print { body { padding: 20px; } }
-  </style>
-</head>
-<body>
-  <h1>📦 Résumé livraison groupée</h1>
-  <p class="meta">
-    <span class="badge">${escapeHtml(s.cityName)}</span>
-    ${escapeHtml(s.dateLabel)} &nbsp;·&nbsp; ${s.orderCount} commande${s.orderCount > 1 ? 's' : ''}
-  </p>
+    const colArticle = margin;
+    const colQty = pageW - margin - 44;
+    const colTotal = pageW - margin;
+    const colName = margin;
+    const colPhone = margin + usableW * 0.55;
+    const colAmount = pageW - margin;
 
-  <h2>Articles consolidés</h2>
-  <table>
-    <thead>
-      <tr>
-        <td><strong>Article</strong></td>
-        <td class="center"><strong>Qté</strong></td>
-        <td class="right"><strong>Sous-total</strong></td>
-      </tr>
-    </thead>
-    <tbody>${itemRows}</tbody>
-    <tbody>
-      <tr class="total-row">
-        <td colspan="2">Total général</td>
-        <td class="right">${s.grandTotal.toLocaleString('fr-FR')} FCFA</td>
-      </tr>
-    </tbody>
-  </table>
+    const needsPage = (requiredSpace: number) => {
+      if (y + requiredSpace > maxY) {
+        doc.addPage();
+        y = 14;
+        return true;
+      }
+      return false;
+    };
 
-  <h2>Clients</h2>
-  <table>
-    <thead>
-      <tr>
-        <td><strong>Nom</strong></td>
-        <td><strong>Téléphone</strong></td>
-        <td class="right"><strong>Montant</strong></td>
-      </tr>
-    </thead>
-    <tbody>${clientRows}</tbody>
-  </table>
+    const drawItemsHeader = () => {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Article', colArticle, y);
+      doc.text('Qte', colQty, y, { align: 'right' });
+      doc.text('Sous-total', colTotal, y, { align: 'right' });
+      y += 3;
+      doc.setDrawColor(...dark);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y, pageW - margin, y);
+      y += 4;
+    };
 
-  <p class="footer">Généré le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-</body>
-</html>`;
+    const drawClientsHeader = () => {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...dark);
+      doc.text('Nom', colName, y);
+      doc.text('Telephone', colPhone, y);
+      doc.text('Montant', colAmount, y, { align: 'right' });
+      y += 3;
+      doc.setDrawColor(...dark);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y, pageW - margin, y);
+      y += 4;
+    };
 
-    const win = window.open('', '_blank', 'noopener,noreferrer');
-    if (!win) { toast.error('Autorisez les pop-ups pour imprimer.'); return; }
-    win.opener = null;
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    win.print();
+    doc.setFontSize(18);
+    doc.setTextColor(...dark);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resume livraison groupee', margin, y);
+    y += 7;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...muted);
+    doc.text(`${s.cityName}  |  ${s.dateLabel}  |  ${s.orderCount} commande${s.orderCount > 1 ? 's' : ''}`, margin, y);
+    y += 10;
+
+    doc.setDrawColor(...light);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 7;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...muted);
+    doc.text('ARTICLES CONSOLIDES', margin, y);
+    y += 5;
+
+    drawItemsHeader();
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...dark);
+    for (const item of s.items) {
+      needsPage(10);
+      const name = item.name.length > 55 ? item.name.slice(0, 52) + '...' : item.name;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...dark);
+      doc.text(name, colArticle, y);
+      doc.text(`x ${item.qty}`, colQty, y, { align: 'right' });
+      doc.text(`${item.total.toLocaleString('fr-FR')} FCFA`, colTotal, y, { align: 'right' });
+      y += 5.5;
+    }
+
+    needsPage(16);
+    doc.setDrawColor(...light);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...accent[0], accent[1], accent[2]);
+    doc.setFontSize(9);
+    doc.text('Total general', colArticle, y);
+    doc.text(`${s.grandTotal.toLocaleString('fr-FR')} FCFA`, colTotal, y, { align: 'right' });
+    y += 10;
+
+    needsPage(20);
+    doc.setDrawColor(...light);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 7;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...muted);
+    doc.text('CLIENTS', margin, y);
+    y += 5;
+
+    drawClientsHeader();
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...dark);
+    for (const c of s.clients) {
+      needsPage(10);
+      const name = c.name.length > 40 ? c.name.slice(0, 37) + '...' : c.name;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...dark);
+      doc.text(name, colName, y);
+      doc.text(c.phone, colPhone, y);
+      doc.text(`${c.orderTotal.toLocaleString('fr-FR')} FCFA`, colAmount, y, { align: 'right' });
+      y += 5.5;
+    }
+
+    needsPage(14);
+    y += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      `Genere le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+      pageW / 2,
+      y,
+      { align: 'center' },
+    );
+
+    const filename = `livraison-${s.cityName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`;
+    doc.save(filename);
+    toast.success('PDF téléchargé avec succès.');
   };
 
   const getCityName = (slotId: string) => {
@@ -546,7 +604,7 @@ const AdminGroupOrders = () => {
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition"
                   style={{ background: 'rgba(251,191,36,0.15)', color: 'rgb(251,191,36)', border: '1px solid rgba(251,191,36,0.3)' }}
                 >
-                  <Printer className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5" />
                   Télécharger PDF
                 </button>
               </div>
