@@ -246,12 +246,12 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
           )}
         </SheetHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 relative">
           <AnimatePresence mode="wait" custom={dir}>
 
             {/* ── STEP: PRODUCTS ── */}
             {step === 'products' && (
-              <motion.div key="products" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="products" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 {/* Search bar */}
                 <div className="px-5 pt-3 pb-2 shrink-0">
                   <div className="relative">
@@ -261,7 +261,8 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
                       placeholder="Rechercher un produit…"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full bg-white/8 border border-white/12 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/50 transition"
+                      className="w-full rounded-xl pl-9 pr-9 py-2.5 text-sm outline-none transition"
+                      style={{ background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.14)', color: 'white' }}
                     />
                     {search && (
                       <button
@@ -356,7 +357,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
 
             {/* ── STEP: INFO ── */}
             {step === 'info' && (
-              <motion.div key="info" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="info" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
                   <div>
                     <label className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1.5 block">
@@ -400,7 +401,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
 
             {/* ── STEP: SLOT ── */}
             {step === 'slot' && (
-              <motion.div key="slot" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="slot" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
                   {/* City selector */}
                   <div>
@@ -484,7 +485,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
 
             {/* ── STEP: SUMMARY ── */}
             {step === 'summary' && (
-              <motion.div key="summary" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="summary" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
 
                   {/* Delivery info */}
@@ -567,7 +568,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
                 key="success"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="h-full flex flex-col items-center justify-center px-8 text-center"
+                className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
               >
                 <motion.div
                   initial={{ scale: 0 }}
