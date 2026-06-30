@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings, Tag } from 'lucide-react';
+import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings, Tag, Truck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
@@ -163,6 +163,16 @@ const Admin = () => {
             />
           </Link>
 
+          <Link to="/admin/group-orders" className="block">
+            <StatCard
+              icon={<Truck className="w-5 h-5 text-white" />}
+              label="Commandes groupées Boutique"
+              count="→"
+              color="bg-amber-600/60"
+              delay={0.36}
+            />
+          </Link>
+
           <Link to="/admin/informations" className="block">
             <StatCard
               icon={<Phone className="w-5 h-5 text-white" />}
@@ -193,6 +203,8 @@ const Admin = () => {
               { to: '/admin/heures', label: 'Gérer les horaires', desc: "Modifier les heures d'ouverture", color: 'bg-orange-600/20 hover:bg-orange-600/30' },
               { to: '/admin/informations', label: 'Gérer les informations', desc: 'Instagram, WhatsApp, téléphone, Maps', color: 'bg-green-700/20 hover:bg-green-700/30' },
               { to: '/admin/commandes', label: 'Voir les commandes', desc: 'Historique et gestion des statuts', color: 'bg-yellow-600/20 hover:bg-yellow-600/30' },
+              { to: '/admin/group-orders', label: 'Commandes groupées', desc: 'Tableau par ville et date — Boutique', color: 'bg-amber-600/20 hover:bg-amber-600/30' },
+              { to: '/admin/group-orders/config', label: 'Config livraisons groupées', desc: 'Villes et créneaux disponibles', color: 'bg-amber-700/20 hover:bg-amber-700/30' },
             ].map(({ to, label, desc, color }) => (
               <Link
                 key={to}

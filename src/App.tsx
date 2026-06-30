@@ -16,6 +16,8 @@ import AdminHeures from "./pages/AdminHeures";
 import AdminInformations from "./pages/AdminInformations";
 import AdminCommandes from "./pages/AdminCommandes";
 import AdminCategories from "./pages/AdminCategories";
+import AdminGroupOrders from "./pages/AdminGroupOrders";
+import AdminGroupOrdersConfig from "./pages/AdminGroupOrdersConfig";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +95,22 @@ const App = () => (
             element={
               <ProtectedAdminRoute>
                 <AdminCategories />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/group-orders"
+            element={
+              <ProtectedAdminRoute>
+                <AdminGroupOrders />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/group-orders/config"
+            element={
+              <ProtectedAdminRoute>
+                <AdminGroupOrdersConfig />
               </ProtectedAdminRoute>
             }
           />

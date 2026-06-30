@@ -7,6 +7,7 @@ import type { MenuItem, Category } from '@/data/types';
 import logo from '@/assets/logo.png';
 import { useCartStore } from '@/store/cartStore';
 import CartDrawer from '@/components/CartDrawer';
+import GroupOrderDrawer from '@/components/GroupOrderDrawer';
 
 const EMOJI_MAP: Record<string, string> = {
   'Pizza': '🍕',
@@ -23,6 +24,7 @@ const Menu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [groupOrderOpen, setGroupOrderOpen] = useState(false);
 
   const { addItem, updateQuantity, itemCount, items: cartItems } = useCartStore();
 
@@ -199,6 +201,23 @@ const Menu = () => {
           </div>
         )}
 
+        {/* Commande Groupée — Boutique only */}
+        {!loading && activeTab === 'Boutique' && (
+          <div className="mb-4">
+            <button
+              onClick={() => setGroupOrderOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-neutral-900 text-sm transition hover:opacity-90 active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(135deg, hsl(43,96%,56%) 0%, hsl(35,96%,50%) 100%)',
+                boxShadow: '0 4px 16px hsl(43,96%,56%,0.35)',
+              }}
+            >
+              <span className="text-base leading-none">📦</span>
+              Commande Groupée
+            </button>
+          </div>
+        )}
+
         {loading && (
           <div className="text-center py-10 text-white/80">Chargement du menu…</div>
         )}
@@ -366,6 +385,11 @@ const Menu = () => {
       </AnimatePresence>
 
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      <GroupOrderDrawer
+        open={groupOrderOpen}
+        onOpenChange={setGroupOrderOpen}
+        boutiqueItems={items.filter((i) => i.category === 'Boutique' && i.available !== false)}
+      />
     </div>
   );
 };
