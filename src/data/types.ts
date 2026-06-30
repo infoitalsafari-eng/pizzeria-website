@@ -15,5 +15,6 @@ export interface Category {
   name: string;
   parent_id: string | null;
   position: number;
+  emoji?: string | null;
   created_at?: string;
 }

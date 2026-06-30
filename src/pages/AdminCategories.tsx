@@ -15,12 +15,14 @@ const AdminCategories = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editEmoji, setEditEmoji] = useState('');
 
   const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
   const [newSubName, setNewSubName] = useState('');
 
   const [addingMain, setAddingMain] = useState(false);
   const [newMainName, setNewMainName] = useState('');
+  const [newMainEmoji, setNewMainEmoji] = useState('');
 
   const [saving, setSaving] = useState(false);
 
@@ -48,25 +50,31 @@ const AdminCategories = () => {
   const startEdit = (cat: Category) => {
     setEditingId(cat.id);
     setEditValue(cat.name);
+    setEditEmoji(cat.emoji ?? '');
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditValue(''); };
+  const cancelEdit = () => { setEditingId(null); setEditValue(''); setEditEmoji(''); };
 
-  const saveEdit = async (id: string) => {
+  const saveEdit = async (id: string, isMain = false) => {
     const name = editValue.trim();
     if (!name) return;
     setSaving(true);
+    const updates: Record<string, unknown> = { name };
+    if (isMain) updates.emoji = editEmoji.trim() || null;
     const { error } = await supabase
       .from('categories_pizzeria')
-      .update({ name })
+      .update(updates)
       .eq('id', id);
     if (error) toast.error('Erreur : ' + error.message);
     else {
-      setCategories((prev) => prev.map((c) => c.id === id ? { ...c, name } : c));
-      toast.success('Renommé');
+      setCategories((prev) => prev.map((c) =>
+        c.id === id ? { ...c, name, ...(isMain ? { emoji: (editEmoji.trim() || null) } : {}) } : c
+      ));
+      toast.success('Modifié');
     }
     setEditingId(null);
     setEditValue('');
+    setEditEmoji('');
     setSaving(false);
   };
 
@@ -93,9 +101,10 @@ const AdminCategories = () => {
     const name = newMainName.trim();
     if (!name) return;
     setSaving(true);
+    const emoji = newMainEmoji.trim() || null;
     const { data, error } = await supabase
       .from('categories_pizzeria')
-      .insert({ name, parent_id: null, position: mainCategories.length + 1 })
+      .insert({ name, emoji, parent_id: null, position: mainCategories.length + 1 })
       .select()
       .single();
     if (error) toast.error('Erreur : ' + error.message);
@@ -105,6 +114,7 @@ const AdminCategories = () => {
     }
     setAddingMain(false);
     setNewMainName('');
+    setNewMainEmoji('');
     setSaving(false);
   };
 
@@ -201,7 +211,7 @@ const AdminCategories = () => {
                       editingId === main.id ? (
                         <>
                           <button
-                            onClick={() => saveEdit(main.id)}
+                            onClick={() => saveEdit(main.id, true)}
                             disabled={saving}
                             className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition"
                           >
@@ -246,16 +256,27 @@ const AdminCategories = () => {
 
                 {/* Inline edit row for non-fixed mains (shown in the header area) */}
                 {editingId === main.id && !isFixed && (
-                  <div className="px-4 pb-3 -mt-1">
+                  <div className="px-4 pb-3 -mt-1 flex gap-2">
+                    <input
+                      value={editEmoji}
+                      onChange={(e) => setEditEmoji(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveEdit(main.id, true);
+                        if (e.key === 'Escape') cancelEdit();
+                      }}
+                      placeholder="🍴"
+                      className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 w-16 text-center focus:outline-none"
+                      maxLength={4}
+                    />
                     <input
                       autoFocus
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit(main.id);
+                        if (e.key === 'Enter') saveEdit(main.id, true);
                         if (e.key === 'Escape') cancelEdit();
                       }}
-                      className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 w-full focus:outline-none"
+                      className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 flex-1 focus:outline-none"
                     />
                   </div>
                 )}
@@ -353,26 +374,40 @@ const AdminCategories = () => {
           {/* Add main category */}
           {addingMain ? (
             <div
-              className="rounded-2xl px-4 py-3 flex items-center gap-2"
+              className="rounded-2xl px-4 py-3 space-y-2"
               style={{ background: 'linear-gradient(135deg, hsl(60,3%,7%) 0%, hsl(0,3%,19%) 100%)' }}
             >
-              <input
-                autoFocus
-                value={newMainName}
-                onChange={(e) => setNewMainName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') addMainCategory();
-                  if (e.key === 'Escape') { setAddingMain(false); setNewMainName(''); }
-                }}
-                placeholder="Nom de la catégorie (ex: Desserts)…"
-                className="bg-white/10 border border-primary/40 text-white text-sm rounded-lg px-3 py-1.5 flex-1 focus:outline-none placeholder:text-white/30"
-              />
-              <button onClick={addMainCategory} disabled={saving} className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition">
-                <Check className="w-3.5 h-3.5 text-green-400" />
-              </button>
-              <button onClick={() => { setAddingMain(false); setNewMainName(''); }} className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-                <X className="w-3.5 h-3.5 text-white/60" />
-              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  value={newMainEmoji}
+                  onChange={(e) => setNewMainEmoji(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') addMainCategory();
+                    if (e.key === 'Escape') { setAddingMain(false); setNewMainName(''); setNewMainEmoji(''); }
+                  }}
+                  placeholder="🍴"
+                  className="bg-white/10 border border-primary/40 text-white text-sm rounded-lg px-3 py-1.5 w-16 text-center focus:outline-none placeholder:text-white/30"
+                  maxLength={4}
+                />
+                <input
+                  autoFocus
+                  value={newMainName}
+                  onChange={(e) => setNewMainName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') addMainCategory();
+                    if (e.key === 'Escape') { setAddingMain(false); setNewMainName(''); setNewMainEmoji(''); }
+                  }}
+                  placeholder="Nom de la catégorie (ex: Desserts)…"
+                  className="bg-white/10 border border-primary/40 text-white text-sm rounded-lg px-3 py-1.5 flex-1 focus:outline-none placeholder:text-white/30"
+                />
+                <button onClick={addMainCategory} disabled={saving} className="w-7 h-7 rounded-lg bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition">
+                  <Check className="w-3.5 h-3.5 text-green-400" />
+                </button>
+                <button onClick={() => { setAddingMain(false); setNewMainName(''); setNewMainEmoji(''); }} className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                  <X className="w-3.5 h-3.5 text-white/60" />
+                </button>
+              </div>
+              <p className="text-white/30 text-[11px] pl-1">Saisissez un emoji pour l'onglet (ex : 🍰, 🥗, ☕). Laissez vide pour utiliser l'icône par défaut.</p>
             </div>
           ) : (
             <button

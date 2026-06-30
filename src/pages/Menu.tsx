@@ -15,7 +15,8 @@ const EMOJI_MAP: Record<string, string> = {
   'Bar': '🍹',
   'Boutique': '🛒',
 };
-const getTabEmoji = (name: string) => EMOJI_MAP[name] ?? '🍴';
+const getTabEmoji = (tab: { name: string; emoji?: string | null }) =>
+  tab.emoji?.trim() || EMOJI_MAP[tab.name] || '🍴';
 
 const Menu = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -192,7 +193,7 @@ const Menu = () => {
                         : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                     }`}
                   >
-                    <span className="text-xl leading-none">{getTabEmoji(tab.name)}</span>
+                    <span className="text-xl leading-none">{getTabEmoji(tab)}</span>
                     <span className="leading-none">{tab.name}</span>
                   </button>
                 );
