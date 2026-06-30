@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package, ArrowLeft, ChevronRight, Check, Loader2,
-  Plus, Minus, MapPin, Calendar,
+  Plus, Minus, MapPin, Calendar, Search, X,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +53,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
   const [sending, setSending] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState(DEFAULT_WHATSAPP);
 
+  const [search, setSearch] = useState('');
   const [basket, setBasket] = useState<Record<string, number>>({});
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -83,6 +84,7 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
       setTimeout(() => {
         setStep('products');
         setDir(1);
+        setSearch('');
         setBasket({});
         setClientName('');
         setClientPhone('');
@@ -250,8 +252,31 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
             {/* ── STEP: PRODUCTS ── */}
             {step === 'products' && (
               <motion.div key="products" custom={dir} {...slide} className="h-full flex flex-col">
-                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
-                  {boutiqueItems.filter((i) => i.available !== false).map((item) => {
+                {/* Search bar */}
+                <div className="px-5 pt-3 pb-2 shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher un produit…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full bg-white/8 border border-white/12 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/50 transition"
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                      >
+                        <X className="w-3 h-3 text-white/50" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto px-5 py-2 space-y-2">
+                  {boutiqueItems.filter((i) => i.available !== false && (
+                    !search.trim() || (i.name ?? '').toLowerCase().includes(search.trim().toLowerCase())
+                  )).map((item) => {
                     const qty = basket[String(item.id)] ?? 0;
                     return (
                       <div
@@ -303,6 +328,12 @@ const GroupOrderDrawer = ({ open, onOpenChange, boutiqueItems }: GroupOrderDrawe
                       </div>
                     );
                   })}
+                  {search.trim() && boutiqueItems.filter((i) => i.available !== false && (i.name ?? '').toLowerCase().includes(search.trim().toLowerCase())).length === 0 && (
+                    <div className="py-10 flex flex-col items-center gap-2 text-white/30">
+                      <Search className="w-6 h-6" />
+                      <p className="text-sm">Aucun produit trouvé pour « {search} »</p>
+                    </div>
+                  )}
                 </div>
                 <div className="px-5 pb-6 pt-3 border-t border-white/10 shrink-0">
                   {selectedItems.length > 0 && (
