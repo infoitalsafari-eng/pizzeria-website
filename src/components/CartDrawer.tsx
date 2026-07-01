@@ -171,7 +171,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl max-h-[92vh] flex flex-col border-none p-0 outline-none"
+        className="rounded-t-3xl h-[92vh] flex flex-col border-none p-0 outline-none overflow-hidden"
         style={{
           background: 'linear-gradient(160deg, hsl(60,3%,9%) 0%, hsl(0,3%,14%) 100%)',
         }}
@@ -211,7 +211,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
         </SheetHeader>
 
         {/* Body */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 relative">
           <AnimatePresence mode="wait" custom={dir}>
             {/* ── STEP: CART ── */}
             {step === 'cart' && (
@@ -219,7 +219,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                 key="cart"
                 custom={dir}
                 {...slide}
-                className="h-full flex flex-col"
+                className="absolute inset-0 flex flex-col"
               >
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2.5">
                   {items.length === 0 ? (
@@ -306,7 +306,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
 
             {/* ── STEP: FORM ── */}
             {step === 'form' && (
-              <motion.div key="form" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="form" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
                   {/* Nom */}
@@ -425,7 +425,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
 
             {/* ── STEP: SUMMARY ── */}
             {step === 'summary' && (
-              <motion.div key="summary" custom={dir} {...slide} className="h-full flex flex-col">
+              <motion.div key="summary" custom={dir} {...slide} className="absolute inset-0 flex flex-col">
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
                   {/* Products */}
@@ -504,7 +504,7 @@ const CartDrawer = ({ open, onOpenChange }: CartDrawerProps) => {
                 key="success"
                 custom={dir}
                 {...slide}
-                className="h-full flex flex-col items-center justify-center px-8 text-center"
+                className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
               >
                 <motion.div
                   initial={{ scale: 0 }}
