@@ -18,6 +18,7 @@ import AdminCommandes from "./pages/AdminCommandes";
 import AdminCategories from "./pages/AdminCategories";
 import AdminGroupOrders from "./pages/AdminGroupOrders";
 import AdminGroupOrdersConfig from "./pages/AdminGroupOrdersConfig";
+import AdminResetPassword from "./pages/AdminResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/menu" element={<Menu />} />
           <Route path="/heurs" element={<Heurs />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/reset-password" element={<AdminResetPassword />} />
           <Route
             path="/admin"
             element={
