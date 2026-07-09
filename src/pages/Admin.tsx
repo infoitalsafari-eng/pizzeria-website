@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings, Tag, Truck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, UtensilsCrossed, Clock, Phone, Package, ChevronRight, Settings, Tag, Truck, KeyRound, Eye, EyeOff, X, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
@@ -35,6 +35,33 @@ const Admin = () => {
   const [heuresCount, setHeuresCount] = useState<number | null>(null);
   const [activeOrdersCount, setActiveOrdersCount] = useState<number | null>(null);
   const [groupOrdersCount, setGroupOrdersCount] = useState<number | null>(null);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const openPasswordModal = () => {
+    setNewPassword(''); setConfirmPassword('');
+    setPwError(''); setPwSuccess(false);
+    setShowPasswordModal(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError('');
+    if (newPassword.length < 6) { setPwError('Le mot de passe doit contenir au moins 6 caractères.'); return; }
+    if (newPassword !== confirmPassword) { setPwError('Les mots de passe ne correspondent pas.'); return; }
+    setPwLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwLoading(false);
+    if (error) { setPwError('Erreur lors de la mise à jour. Réessayez.'); }
+    else { setPwSuccess(true); setTimeout(() => setShowPasswordModal(false), 2000); }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -100,13 +127,22 @@ const Admin = () => {
               <p className="text-white/70 text-[10px]">Pizzeria Chez Moi</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Déconnexion
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={openPasswordModal}
+              className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              Mot de passe
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Déconnexion
+            </button>
+          </div>
         </motion.div>
 
         {/* Title */}
@@ -258,6 +294,127 @@ const Admin = () => {
           © 2026 Pizzeria Chez Moi · Admin
         </p>
       </div>
+
+      {/* Modal modifier mot de passe */}
+      <AnimatePresence>
+        {showPasswordModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-5"
+            style={{ background: 'rgba(0,0,0,0.65)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowPasswordModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 20 }}
+              transition={{ duration: 0.25 }}
+              className="w-full max-w-sm rounded-3xl p-7 shadow-2xl"
+              style={{ background: 'linear-gradient(135deg, hsl(60, 3%, 7%) 0%, hsl(0, 3%, 19%) 100%)' }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-primary" />
+                  <p className="text-white font-bold text-sm">Modifier le mot de passe</p>
+                </div>
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                >
+                  <X className="w-3.5 h-3.5 text-white" />
+                </button>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {pwSuccess ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 py-4"
+                  >
+                    <CheckCircle className="w-10 h-10 text-green-400" />
+                    <p className="text-white font-semibold text-sm text-center">Mot de passe mis à jour !</p>
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onSubmit={handleChangePassword}
+                    className="space-y-4"
+                  >
+                    <div className="relative">
+                      <input
+                        type={showNew ? 'text' : 'password'}
+                        placeholder="Nouveau mot de passe"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        className="w-full bg-white/10 border border-white/15 text-white placeholder-white/40 rounded-xl pl-4 pr-11 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNew((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition"
+                        tabIndex={-1}
+                      >
+                        {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <input
+                        type={showConfirm ? 'text' : 'password'}
+                        placeholder="Confirmer le mot de passe"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        className="w-full bg-white/10 border border-white/15 text-white placeholder-white/40 rounded-xl pl-4 pr-11 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition"
+                        tabIndex={-1}
+                      >
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    {pwError && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-red-400 text-xs text-center"
+                      >
+                        {pwError}
+                      </motion.p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={pwLoading}
+                      className="w-full bg-primary hover:bg-primary/80 disabled:opacity-60 text-white font-bold rounded-xl py-3 flex items-center justify-center gap-2 transition"
+                    >
+                      {pwLoading ? (
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <KeyRound className="w-4 h-4" />
+                      )}
+                      Enregistrer
+                    </button>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
